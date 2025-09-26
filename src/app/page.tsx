@@ -1,8 +1,9 @@
 "use client";
 
 import Image from 'next/image';
-import { event, ticketTypes } from '@/lib/placeholder-data';
-import { Calendar, Ticket, Minus, Plus, Tag, Music, User } from 'lucide-react';
+import Link from 'next/link';
+import { event } from '@/lib/placeholder-data';
+import { Calendar, Ticket, Tag, Music, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,42 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { useState } from 'react';
-
-type Quantities = {
-  [key: string]: number;
-};
 
 export default function Home() {
-  const [quantities, setQuantities] = useState<Quantities>(
-    ticketTypes.reduce((acc, type) => {
-      acc[type.id] = 0;
-      return acc;
-    }, {} as Quantities)
-  );
-
-  const handleQuantityChange = (ticketId: string, amount: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [ticketId]: Math.max(0, Math.min(5, prev[ticketId] + amount)),
-    }));
-  };
-
-  const totalTickets = Object.values(quantities).reduce((sum, q) => sum + q, 0);
-  const totalPrice = ticketTypes.reduce(
-    (sum, type) => sum + type.price * quantities[type.id],
-    0
-  );
-
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       {/* Event Info */}
@@ -107,86 +74,12 @@ export default function Home() {
                 <CardDescription>Consigue tus entradas ahora para una noche inolvidable.</CardDescription>
              </CardHeader>
              <CardContent>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button size="lg" className="w-full">
-                            <Ticket className="mr-2 h-5 w-5" />
-                            Comprar Entradas
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Comprar Entradas</DialogTitle>
-                            <DialogDescription>
-                                Selecciona tu tipo de entrada. Límite 5 por tipo.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-6 pt-4">
-                            {/* Ticket Types */}
-                            <div className="space-y-4">
-                                {ticketTypes.map((type) => (
-                                <div
-                                    key={type.id}
-                                    className="flex items-center justify-between rounded-lg border p-4"
-                                >
-                                    <div>
-                                    <h3 className="font-semibold">{type.name}</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        {type.description}
-                                    </p>
-                                    <p className="text-lg font-bold text-primary">
-                                        ${type.price.toFixed(2)}
-                                    </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleQuantityChange(type.id, -1)}
-                                        disabled={quantities[type.id] === 0}
-                                    >
-                                        <Minus className="h-4 w-4" />
-                                    </Button>
-                                    <span className="w-10 text-center text-lg font-bold">
-                                        {quantities[type.id]}
-                                    </span>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleQuantityChange(type.id, 1)}
-                                        disabled={quantities[type.id] === 5}
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                    </Button>
-                                    </div>
-                                </div>
-                                ))}
-                            </div>
-
-                            <Separator />
-
-                            {/* Totals and Purchase */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                <span className="text-xl font-semibold">Total</span>
-                                <span className="text-3xl font-extrabold text-primary">
-                                    ${totalPrice.toFixed(2)}
-                                </span>
-                                </div>
-                                <Button
-                                size="lg"
-                                className="w-full"
-                                disabled={totalTickets === 0}
-                                >
-                                <Ticket className="mr-2 h-5 w-5" />
-                                Comprar ({totalTickets} {totalTickets === 1 ? 'ticket' : 'tickets'})
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <Button size="lg" className="w-full" asChild>
+                    <Link href={`/events/${event.id}`}>
+                        <Ticket className="mr-2 h-5 w-5" />
+                        Comprar Entradas
+                    </Link>
+                </Button>
              </CardContent>
            </Card>
         </div>
