@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { event, ticketTypes } from '@/lib/placeholder-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Minus,
   Plus,
@@ -63,34 +62,21 @@ export default function EventPurchasePage() {
     });
   };
   
-  const backgroundImage = PlaceHolderImages.find(img => img.id === 'background-1');
-
   return (
-    <div className="relative min-h-screen bg-background text-white">
-       {backgroundImage && (
-         <Image
-            src={backgroundImage.imageUrl}
-            alt={backgroundImage.description}
-            fill
-            className="object-cover z-0"
-            data-ai-hint={backgroundImage.imageHint}
-        />
-       )}
-      <div className="absolute inset-0 bg-black/60 z-10" />
-
-      <div className="relative z-20 container mx-auto max-w-6xl px-4 py-8">
+    <div className="bg-background">
+      <div className="container mx-auto max-w-6xl px-4 py-12">
         <div className="text-center mb-10">
           <h1 className="text-5xl font-bold tracking-tight">
             {event.name}
           </h1>
-          <p className="mt-2 text-lg text-gray-300">
+          <p className="mt-2 text-lg text-muted-foreground">
             Asegurá tus boletos – transferencia bancaria con comprobante.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           {/* Left Column: Purchase Form */}
-          <Card className="bg-white/90 backdrop-blur-sm border-gray-300 text-black">
+          <Card>
               <CardContent className="pt-6">
                  <h2 className="text-3xl font-bold mb-2">Comprar Entradas</h2>
                 <p className="text-muted-foreground mb-6">
@@ -171,7 +157,7 @@ export default function EventPurchasePage() {
           </Card>
 
           {/* Right Column: Transfer Details */}
-           <Card className="bg-white/90 backdrop-blur-sm border-gray-300 text-black">
+           <Card>
               <CardContent className="pt-6">
                 <h2 className="text-3xl font-bold mb-6">Datos de transferencia</h2>
                 <div className="space-y-3">
