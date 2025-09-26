@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
-import { sales, event, User } from '@/lib/placeholder-data';
+import { sales, type User } from '@/lib/placeholder-data';
 import { Users, Ticket, BarChart, Banknote, Loader2 } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
 import { db } from '@/lib/firebase';
