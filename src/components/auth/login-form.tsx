@@ -13,48 +13,45 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { users } from "@/lib/placeholder-data";
 import { useToast } from "@/hooks/use-toast";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const user = users.find((u) => u.email === email);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    if (user && user.password === password) {
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${user.name}! Redirecting...`,
+        description: `Welcome back, ${user.displayName || user.email}!`,
       });
       
-      // Redirect based on role
-      switch (user.role) {
-        case 'administrator':
-          router.push('/dashboard/admin');
-          break;
-        case 'validator':
-          router.push('/dashboard/validator');
-          break;
-        case 'event organizer':
-          router.push('/dashboard/organizer');
-          break;
-        default:
-          router.push('/dashboard');
-          break;
-      }
-    } else {
+      // For now, all users are redirected to the main dashboard.
+      // We will implement role-based redirection later.
+      router.push('/dashboard');
+
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login Failed",
         description: "Invalid email or password. Please try again.",
       });
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -84,7 +81,8 @@ export default function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Sign in
           </Button>
           <div className="text-center text-sm">
