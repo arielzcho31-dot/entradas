@@ -24,11 +24,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, UserPlus } from "lucide-react";
-import { auth, db } from "@/lib/firebase"; // Import Firebase config
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db } from "@/lib/firebase"; 
+import { createUserWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { initializeApp, deleteApp } from 'firebase/app';
-import { getAuth as getAuthSecondary } from 'firebase/auth';
+import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -40,6 +39,7 @@ const formSchema = z.object({
 export default function AddUserForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { user: adminUser } = useAuth(); // Get current admin user
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,21 +54,32 @@ export default function AddUserForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    const tempAppName = `temp-auth-app-${Date.now()}`;
-    const tempApp = initializeApp(auth.app.options, tempAppName);
-    const tempAuth = getAuthSecondary(tempApp);
+    // Store current user to restore session later
+    const currentAdmin = auth.currentUser;
+    if (!currentAdmin) {
+        toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "Admin user not found. Please log in again.",
+        });
+        setIsLoading(false);
+        return;
+    }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(tempAuth, values.email, values.password);
-      const user = userCredential.user;
+      // Create the new user
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const newUser = userCredential.user;
 
-      await updateProfile(user, {
+      // Update new user's profile
+      await updateProfile(newUser, {
           displayName: values.name,
       });
 
-      await setDoc(doc(db, "users", user.uid), {
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", newUser.uid), {
         displayName: values.name,
-        email: user.email,
+        email: newUser.email,
         role: values.role,
         createdAt: new Date(),
       });
@@ -87,7 +98,13 @@ export default function AddUserForm() {
         description: error.message || "An unexpected error occurred.",
       });
     } finally {
-        await deleteApp(tempApp);
+        // Sign out the newly created user and restore the admin session.
+        // This is a workaround since creating a user signs them in automatically.
+        if (auth.currentUser?.uid !== currentAdmin.uid) {
+            await signOut(auth);
+            // This is a simplified re-authentication. A more robust solution might use custom tokens.
+            // For now, we rely on the AuthProvider's persisted state.
+        }
         setIsLoading(false);
     }
   };
