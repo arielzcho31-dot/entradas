@@ -53,9 +53,9 @@ export default function SignUpForm() {
 
       toast({
         title: "Account Created",
-        description: "You have been successfully signed up.",
+        description: "You have been successfully signed up. Please login.",
       });
-      router.push("/dashboard");
+      router.push("/login");
 
     } catch (error: any) {
       toast({
