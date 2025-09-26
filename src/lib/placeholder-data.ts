@@ -17,6 +17,7 @@ export type User = {
   name: string;
   email: string;
   role: 'customer' | 'validator' | 'administrator' | 'event organizer';
+  password?: string;
 };
 
 export type Sale = {
@@ -126,11 +127,11 @@ export const events: Event[] = [
 
 
 export const users: User[] = [
-    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', role: 'customer' },
-    { id: '2', name: 'Bob Williams', email: 'bob@example.com', role: 'validator' },
-    { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', role: 'administrator' },
-    { id: '4', name: 'Diana Prince', email: 'diana@example.com', role: 'event organizer' },
-    { id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', role: 'customer' },
+    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', role: 'customer', password: 'password123' },
+    { id: '2', name: 'Bob Williams', email: 'bob@example.com', role: 'validator', password: 'password123' },
+    { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', role: 'administrator', password: 'password123' },
+    { id: '4', name: 'Diana Prince', email: 'diana@example.com', role: 'event organizer', password: 'password123' },
+    { id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', role: 'customer', password: 'password123' },
   ];
 
 export const sales: Sale[] = [
