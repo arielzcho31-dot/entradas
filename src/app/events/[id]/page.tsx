@@ -1,13 +1,13 @@
+"use client";
+
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import { events } from '@/lib/placeholder-data';
+import { event, ticketTypes } from '@/lib/placeholder-data';
 import {
   Calendar,
   Ticket,
-  Users,
-  Tag,
   Minus,
   Plus,
+  Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,26 +18,36 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import SuggestedContent from '@/components/events/suggested-content';
+import { useState } from 'react';
 
-export function generateStaticParams() {
-  return events.map((event) => ({
-    id: event.id,
-  }));
-}
+type Quantities = {
+  [key: string]: number;
+};
 
-export default function EventDetailPage({ params }: { params: { id: string } }) {
-  const event = events.find((e) => e.id === params.id);
+export default function Home() {
+  const [quantities, setQuantities] = useState<Quantities>(
+    ticketTypes.reduce((acc, type) => {
+      acc[type.id] = 0;
+      return acc;
+    }, {} as Quantities)
+  );
 
-  if (!event) {
-    notFound();
-  }
+  const handleQuantityChange = (ticketId: string, amount: number) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [ticketId]: Math.max(0, Math.min(5, prev[ticketId] + amount)),
+    }));
+  };
+  
+  const totalTickets = Object.values(quantities).reduce((sum, q) => sum + q, 0);
+  const totalPrice = ticketTypes.reduce((sum, type) => sum + type.price * quantities[type.id], 0);
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-8">
+    <div className="container mx-auto max-w-6xl px-4 py-8">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        {/* Event Info */}
         <div>
-          <div className="relative mb-4 h-96 w-full overflow-hidden rounded-lg shadow-lg">
+          <div className="relative mb-4 h-[450px] w-full overflow-hidden rounded-lg shadow-lg">
             <Image
               src={event.imageUrl}
               alt={event.name}
@@ -69,48 +79,55 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           <p className="mt-6 text-base leading-7">{event.description}</p>
         </div>
         
+        {/* Ticket Purchasing */}
         <div className="sticky top-24 h-fit">
             <Card>
                 <CardHeader>
                     <CardTitle>Buy Tickets</CardTitle>
-                    <CardDescription>Limit 5 tickets per person</CardDescription>
+                    <CardDescription>Select your ticket type. Limit 5 per type.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <span className="text-lg font-medium">Price per ticket</span>
-                            <span className="text-2xl font-bold text-primary">${event.price.toFixed(2)}</span>
-                        </div>
-                        <Separator />
-                        <div className="flex items-center justify-between">
-                            <span className="font-medium">Quantity</span>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" className="h-8 w-8">
+                        {/* Ticket Types */}
+                        <div className="space-y-4">
+                          {ticketTypes.map((type) => (
+                            <div key={type.id} className="flex items-center justify-between rounded-lg border p-4">
+                              <div>
+                                <h3 className="font-semibold">{type.name}</h3>
+                                <p className="text-sm text-muted-foreground">{type.description}</p>
+                                <p className="text-lg font-bold text-primary">${type.price.toFixed(2)}</p>
+                              </div>
+                               <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, -1)} disabled={quantities[type.id] === 0}>
                                     <Minus className="h-4 w-4" />
                                 </Button>
-                                <span className="w-10 text-center text-lg font-bold">1</span>
-                                <Button variant="outline" size="icon" className="h-8 w-8">
+                                <span className="w-10 text-center text-lg font-bold">{quantities[type.id]}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, 1)} disabled={quantities[type.id] === 5}>
                                     <Plus className="h-4 w-4" />
                                 </Button>
                             </div>
+                            </div>
+                          ))}
                         </div>
+                        
                         <Separator />
-                        <div className="flex items-center justify-between">
+
+                        {/* Totals and Purchase */}
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between">
                              <span className="text-xl font-semibold">Total</span>
-                             <span className="text-3xl font-extrabold text-primary">${event.price.toFixed(2)}</span>
+                             <span className="text-3xl font-extrabold text-primary">${totalPrice.toFixed(2)}</span>
+                           </div>
+                           <Button size="lg" className="w-full" disabled={totalTickets === 0}>
+                              <Ticket className="mr-2 h-5 w-5" />
+                              Purchase ({totalTickets} {totalTickets === 1 ? 'ticket' : 'tickets'})
+                          </Button>
                         </div>
-                         <Button size="lg" className="w-full">
-                            <Ticket className="mr-2 h-5 w-5" />
-                            Purchase
-                        </Button>
                     </div>
                 </CardContent>
             </Card>
         </div>
       </div>
-       <div className="mt-12">
-            <SuggestedContent event={event} />
-        </div>
     </div>
   );
 }

@@ -1,100 +1,133 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { getSuggestedContent } from '@/lib/actions';
-import type { Event } from '@/lib/placeholder-data';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Lightbulb, ExternalLink, AlertTriangle } from 'lucide-react';
-import Link from 'next/link';
+import Image from 'next/image';
+import { event, ticketTypes } from '@/lib/placeholder-data';
+import {
+  Calendar,
+  Ticket,
+  Minus,
+  Plus,
+  Tag,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useState } from 'react';
 
-interface SuggestedContentProps {
-  event: Event;
-}
+type Quantities = {
+  [key: string]: number;
+};
 
-export default function SuggestedContent({ event }: SuggestedContentProps) {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function Home() {
+  const [quantities, setQuantities] = useState<Quantities>(
+    ticketTypes.reduce((acc, type) => {
+      acc[type.id] = 0;
+      return acc;
+    }, {} as Quantities)
+  );
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      setLoading(true);
-      setError(null);
-      const result = await getSuggestedContent({
-        eventName: event.name,
-        eventDescription: event.description,
-        eventCategory: event.category,
-      });
-
-      if (result.success && result.data) {
-        setSuggestions(result.data);
-      } else {
-        setError(result.error || 'An unknown error occurred.');
-      }
-      setLoading(false);
-    };
-
-    fetchSuggestions();
-  }, [event]);
+  const handleQuantityChange = (ticketId: string, amount: number) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [ticketId]: Math.max(0, Math.min(5, prev[ticketId] + amount)),
+    }));
+  };
+  
+  const totalTickets = Object.values(quantities).reduce((sum, q) => sum + q, 0);
+  const totalPrice = ticketTypes.reduce((sum, type) => sum + type.price * quantities[type.id], 0);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-            <Lightbulb className="h-6 w-6 text-primary" />
-            <div>
-                <CardTitle>Explore More</CardTitle>
-                <CardDescription>AI-powered content to enhance your event experience.</CardDescription>
+    <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        {/* Event Info */}
+        <div>
+          <div className="relative mb-4 h-[450px] w-full overflow-hidden rounded-lg shadow-lg">
+            <Image
+              src={event.imageUrl}
+              alt={event.name}
+              fill
+              className="object-cover"
+              data-ai-hint={event.imageHint}
+            />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            {event.name}
+          </h1>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              <span>
+                {new Date(event.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
             </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading && (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-4 w-4 rounded-full" />
-              <Skeleton className="h-4 w-4/5" />
-            </div>
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-4 w-4 rounded-full" />
-              <Skeleton className="h-4 w-3/5" />
-            </div>
-             <div className="flex items-center space-x-4">
-              <Skeleton className="h-4 w-4 rounded-full" />
-              <Skeleton className="h-4 w-2/5" />
+            <div className="flex items-center gap-2">
+              <Tag className="h-5 w-5" />
+              <span>{event.category}</span>
             </div>
           </div>
-        )}
-        {error && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {!loading && !error && suggestions.length > 0 && (
-          <ul className="space-y-3">
-            {suggestions.map((url, index) => (
-              <li key={index}>
-                <Link
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-3 text-sm font-medium text-primary hover:underline"
-                >
-                  <ExternalLink className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                  <span className="truncate">{url}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {!loading && !error && suggestions.length === 0 && (
-            <p className="text-sm text-muted-foreground">No content suggestions available for this event.</p>
-        )}
-      </CardContent>
-    </Card>
+          <p className="mt-6 text-base leading-7">{event.description}</p>
+        </div>
+        
+        {/* Ticket Purchasing */}
+        <div className="sticky top-24 h-fit">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Buy Tickets</CardTitle>
+                    <CardDescription>Select your ticket type. Limit 5 per type.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-6">
+                        {/* Ticket Types */}
+                        <div className="space-y-4">
+                          {ticketTypes.map((type) => (
+                            <div key={type.id} className="flex items-center justify-between rounded-lg border p-4">
+                              <div>
+                                <h3 className="font-semibold">{type.name}</h3>
+                                <p className="text-sm text-muted-foreground">{type.description}</p>
+                                <p className="text-lg font-bold text-primary">${type.price.toFixed(2)}</p>
+                              </div>
+                               <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, -1)} disabled={quantities[type.id] === 0}>
+                                    <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-10 text-center text-lg font-bold">{quantities[type.id]}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, 1)} disabled={quantities[type.id] === 5}>
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <Separator />
+
+                        {/* Totals and Purchase */}
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between">
+                             <span className="text-xl font-semibold">Total</span>
+                             <span className="text-3xl font-extrabold text-primary">${totalPrice.toFixed(2)}</span>
+                           </div>
+                           <Button size="lg" className="w-full" disabled={totalTickets === 0}>
+                              <Ticket className="mr-2 h-5 w-5" />
+                              Purchase ({totalTickets} {totalTickets === 1 ? 'ticket' : 'tickets'})
+                          </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
+    </div>
   );
 }

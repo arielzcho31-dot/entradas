@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { sales, users, events } from '@/lib/placeholder-data';
+import { sales, users, event } from '@/lib/placeholder-data';
 import { Users, Ticket, BarChart, Banknote } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -57,8 +57,8 @@ export default function AdminDashboard() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{events.length}</div>
-            <p className="text-xs text-muted-foreground">+2 since last hour</p>
+            <div className="text-2xl font-bold">1</div>
+            <p className="text-xs text-muted-foreground">Only one event available.</p>
           </CardContent>
         </Card>
         <Card>
