@@ -6,6 +6,7 @@ export type Event = {
   description: string;
   category: string;
   date: string;
+  location: string;
   imageUrl: string;
   imageHint: string;
   artists: string[];
@@ -54,7 +55,8 @@ export const event: Event = {
     name: 'UnidaFest 2025',
     description: 'Una noche inolvidable bajo las estrellas con los mejores DJs y artistas del mundo. Vive la música como nunca antes.',
     category: 'Música',
-    date: '2024-10-26T19:00:00Z',
+    date: '2025-11-14T19:00:00Z',
+    location: 'Estacionamiento Unida',
     ...findImage('event-1'),
     artists: [
         'kchiporros',

@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { event } from '@/lib/placeholder-data';
-import { Calendar, Ticket, Tag, Music, User } from 'lucide-react';
+import { Calendar, Ticket, Tag, Music, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,13 +38,17 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     <span>
-                        {new Date(event.date).toLocaleDateString('en-US', {
+                        {new Date(event.date).toLocaleDateString('es-ES', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
                         })}
                     </span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      <span>{event.location}</span>
                     </div>
                     <div className="flex items-center gap-2">
                     <Tag className="h-5 w-5" />
