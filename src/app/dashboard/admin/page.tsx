@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -24,13 +24,35 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
-import { sales, users, event } from '@/lib/placeholder-data';
-import { Users, Ticket, BarChart, Banknote } from 'lucide-react';
+import { sales, event, User } from '@/lib/placeholder-data';
+import { Users, Ticket, BarChart, Banknote, Loader2 } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
-import { Input } from '@/components/ui/input';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+
 
 export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+      const usersData: User[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().displayName,
+        email: doc.data().email,
+        role: doc.data().role,
+      }));
+      setUsers(usersData);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
 
   const totalSales = sales.reduce((acc, sale) => acc + sale.totalPrice, 0);
   const totalTicketsSold = sales.reduce((acc, sale) => acc + sale.tickets, 0);
@@ -149,7 +171,7 @@ export default function AdminDashboard() {
                 <CardHeader>
                     <CardTitle>Create User</CardTitle>
                     <CardDescription>Add a new user and assign a role.</CardDescription>
-                </CardHeader>
+                </Header>
                 <CardContent>
                     <AddUserForm />
                 </CardContent>
@@ -179,32 +201,38 @@ export default function AdminDashboard() {
                     </Select>
                 </div>
             </div>
-        </CardHeader>
+        </Header>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden sm:table-cell">Email</TableHead>
-                <TableHead className="text-right">Role</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="font-medium">{user.name}</div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {user.email}
-                  </TableCell>
-                   <TableCell className="text-right">
-                    <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
-                  </TableCell>
+          {loading ? (
+             <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+             </div>
+          ) : (
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">Email</TableHead>
+                    <TableHead className="text-right">Role</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                {filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                    <TableCell>
+                        <div className="font-medium">{user.name}</div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                        {user.email}
+                    </TableCell>
+                    <TableCell className="text-right">
+                        <Badge variant={getRoleBadgeVariant(user.role)} className="capitalize">{user.role}</Badge>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
