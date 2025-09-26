@@ -17,10 +17,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { users } from "@/lib/placeholder-data";
+import { useAuth } from "@/context/auth-context";
 
 export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -41,6 +43,7 @@ export default function LoginForm() {
     setIsLoading(false);
 
     if (user) {
+      login(user);
       toast({
         title: "Login Successful",
         description: `Welcome back, ${user.name}!`,
