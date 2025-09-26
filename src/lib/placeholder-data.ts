@@ -69,23 +69,23 @@ export const event: Event = {
 export const ticketTypes: TicketType[] = [
   {
     id: 't1',
-    name: 'General Access',
+    name: 'Acceso General',
     description: 'Acceso a las áreas principales y escenarios del festival.',
-    price: 85.0,
+    price: 35000,
     availableTickets: 2000,
   },
   {
     id: 't2',
-    name: 'VIP Lounge',
+    name: 'Lounge VIP',
     description: 'Acceso exclusivo al lounge VIP con vistas premium y comodidades.',
-    price: 150.0,
+    price: 65000,
     availableTickets: 500,
   },
   {
     id: 't3',
-    name: 'Backstage Pass',
+    name: 'Pase Backstage',
     description: 'Accede al detrás de cámaras con un pase de acceso total.',
-    price: 300.0,
+    price: 150000,
     availableTickets: 50,
   }
 ];
@@ -131,3 +131,4 @@ export const sales: Sale[] = [
       saleDate: '2024-08-03T11:45:00Z',
     },
   ];
+
