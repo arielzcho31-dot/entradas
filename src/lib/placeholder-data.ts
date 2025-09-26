@@ -24,7 +24,8 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'customer' | 'validator' | 'administrator' | 'event organizer';
+  password?: string; // Made password optional for flexibility
+  role: 'customer' | 'validator' | 'admin' | 'organizer';
 };
 
 export type Sale = {
@@ -93,7 +94,13 @@ export const ticketTypes: TicketType[] = [
 ];
 
 
-export const users: User[] = [];
+export const users: User[] = [
+    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', password: 'password123', role: 'customer' },
+    { id: '2', name: 'Bob Williams', email: 'bob@example.com', password: 'password123', role: 'validator' },
+    { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', password: 'password123', role: 'admin' },
+    { id: '4', name: 'Diana Prince', email: 'diana@example.com', password: 'password123', role: 'organizer' },
+    { id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', password: 'password123', role: 'customer' },
+];
 
 export const sales: Sale[] = [
     {

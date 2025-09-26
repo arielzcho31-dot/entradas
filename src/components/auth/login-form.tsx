@@ -14,10 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { users } from "@/lib/placeholder-data";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -31,27 +30,43 @@ export default function LoginForm() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+    // Simulate checking credentials against placeholder data
+    const user = users.find(
+      (u) => u.email === email && u.password === password
+    );
 
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    setIsLoading(false);
+
+    if (user) {
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${user.displayName || user.email}!`,
+        description: `Welcome back, ${user.name}!`,
       });
-      
-      // For now, all users are redirected to the main dashboard.
-      // We will implement role-based redirection later.
-      router.push('/dashboard');
 
-    } catch (error: any) {
+      // Role-based redirection
+      switch (user.role) {
+        case "admin":
+          router.push("/dashboard/admin");
+          break;
+        case "validator":
+          router.push("/dashboard/validator");
+          break;
+        case "organizer":
+          router.push("/dashboard/organizer");
+          break;
+        default:
+          router.push("/dashboard"); // Default for customers
+          break;
+      }
+    } else {
       toast({
         variant: "destructive",
         title: "Login Failed",
         description: "Invalid email or password. Please try again.",
       });
-    } finally {
-        setIsLoading(false);
     }
   };
 
