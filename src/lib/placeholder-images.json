@@ -8,9 +8,9 @@
     },
     {
       "id": "background-1",
-      "description": "A blurry, atmospheric concert background.",
-      "imageUrl": "https://images.unsplash.com/photo-1511795405832-ef570137446f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVycnklMjBjb25jZXJ0fGVufDB8fHx8MTc1ODkwNDMyNnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "blurry concert"
+      "description": "A crowd of people enjoying a festival at night.",
+      "imageUrl": "https://storage.googleapis.com/aifirebase/images/M7_8_final_bg.png",
+      "imageHint": "party crowd"
     },
     {
       "id": "event-2",
