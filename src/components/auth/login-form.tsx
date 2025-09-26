@@ -16,8 +16,11 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { users } from "@/lib/placeholder-data";
 import { useAuth } from "@/context/auth-context";
+import { auth, db } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import type { User } from "@/lib/placeholder-data";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -32,47 +35,56 @@ export default function LoginForm() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    // Simulate checking credentials against placeholder data
-    const user = users.find(
-      (u) => u.email === email && u.password === password
-    );
+    try {
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const authUser = userCredential.user;
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+      // Get user data from Firestore
+      const userDocRef = doc(db, "users", authUser.uid);
+      const userDoc = await getDoc(userDocRef);
 
-    setIsLoading(false);
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as Omit<User, 'id'>;
+        const user: User = {
+          id: authUser.uid,
+          name: authUser.displayName || userData.name,
+          email: authUser.email!,
+          role: userData.role
+        };
 
-    if (user) {
-      login(user);
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.name}!`,
-      });
+        login(user);
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${user.name}!`,
+        });
 
-      // Role-based redirection
-      switch (user.role) {
-        case "admin":
-          router.push("/dashboard/admin");
-          break;
-        case "validator":
-          router.push("/dashboard/validator");
-          break;
-        case "organizer":
-          router.push("/dashboard/organizer");
-          break;
-        case "customer":
-          router.push("/");
-          break;
-        default:
-          router.push("/"); // Default to home page
-          break;
+        // Role-based redirection
+        switch (user.role) {
+          case "admin":
+            router.push("/dashboard/admin");
+            break;
+          case "validator":
+            router.push("/dashboard/validator");
+            break;
+          case "organizer":
+            router.push("/dashboard/organizer");
+            break;
+          default:
+            router.push("/");
+            break;
+        }
+      } else {
+        throw new Error("User data not found in Firestore.");
       }
-    } else {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: error.message || "Invalid email or password. Please try again.",
       });
+    } finally {
+        setIsLoading(false);
     }
   };
 

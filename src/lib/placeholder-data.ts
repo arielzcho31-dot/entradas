@@ -24,7 +24,6 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  password?: string; // Made password optional for flexibility
   role: 'customer' | 'validator' | 'admin' | 'organizer';
 };
 
