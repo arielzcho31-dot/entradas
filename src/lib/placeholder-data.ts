@@ -51,20 +51,16 @@ const findImage = (id: string) => {
 
 export const event: Event = {
     id: '1',
-    name: 'Starlight Music Festival',
+    name: 'UnidaFest 2025',
     description: 'Una noche inolvidable bajo las estrellas con los mejores DJs y artistas del mundo. Vive la música como nunca antes.',
     category: 'Música',
     date: '2024-10-26T19:00:00Z',
     ...findImage('event-1'),
     artists: [
-        'DJ Stardust',
-        'Cosmic Beats',
-        'Galaxy Grooves',
-        'The Orion Experience',
-        'Luna Waves',
-        'Astrofunk',
-        'Nebula Nine',
-        'Meteor Sound',
+        'kchiporros',
+        'japiaguar',
+        'chapa-c',
+        'marilina',
     ]
 };
 
