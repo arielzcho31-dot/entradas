@@ -7,6 +7,12 @@
       "imageHint": "music festival"
     },
     {
+      "id": "background-1",
+      "description": "A blurry, atmospheric concert background.",
+      "imageUrl": "https://images.unsplash.com/photo-1511795405832-ef570137446f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVycnklMjBjb25jZXJ0fGVufDB8fHx8MTc1ODkwNDMyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blurry concert"
+    },
+    {
       "id": "event-2",
       "description": "A focused tech conference with a speaker on stage.",
       "imageUrl": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWNoJTIwY29uZmVyZW5jZXxlbnwwfHx8fDE3NTg3ODUwNzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
