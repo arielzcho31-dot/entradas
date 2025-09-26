@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -13,12 +16,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
 import { sales, users, event } from '@/lib/placeholder-data';
 import { Users, Ticket, BarChart, Banknote } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
+import { Input } from '@/components/ui/input';
 
 export default function AdminDashboard() {
+  const [roleFilter, setRoleFilter] = useState('all');
+
   const totalSales = sales.reduce((acc, sale) => acc + sale.totalPrice, 0);
   const totalTicketsSold = sales.reduce((acc, sale) => acc + sale.tickets, 0);
 
@@ -35,6 +48,12 @@ export default function AdminDashboard() {
     }
   };
 
+  const filteredUsers = users.filter(user => {
+    if (roleFilter === 'all') {
+      return true;
+    }
+    return user.role === roleFilter;
+  });
 
   return (
     <div className="space-y-8">
@@ -140,8 +159,26 @@ export default function AdminDashboard() {
 
        <Card>
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>A list of all users in the system.</CardDescription>
+            <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>A list of all users in the system.</CardDescription>
+                </div>
+                <div className="w-48">
+                     <Select value={roleFilter} onValueChange={setRoleFilter}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Filter by role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="validator">Validator</SelectItem>
+                            <SelectItem value="organizer">Organizer</SelectItem>
+                            <SelectItem value="customer">Customer</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -153,7 +190,7 @@ export default function AdminDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="font-medium">{user.name}</div>
