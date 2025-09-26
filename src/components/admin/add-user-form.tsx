@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -26,6 +27,8 @@ import { Loader2, UserPlus } from "lucide-react";
 import { auth, db } from "@/lib/firebase"; // Import Firebase config
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth as getAuthSecondary } from 'firebase/auth';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -51,15 +54,11 @@ export default function AddUserForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    try {
-      // We need a temporary secondary app instance to create a user without logging out the admin
-      const { initializeApp } = await import('firebase/app');
-      const { getAuth: getAuthSecondary } = await import('firebase/auth');
-      
-      const tempAppName = `temp-auth-app-${Date.now()}`;
-      const tempApp = initializeApp(auth.app.options, tempAppName);
-      const tempAuth = getAuthSecondary(tempApp);
+    const tempAppName = `temp-auth-app-${Date.now()}`;
+    const tempApp = initializeApp(auth.app.options, tempAppName);
+    const tempAuth = getAuthSecondary(tempApp);
 
+    try {
       const userCredential = await createUserWithEmailAndPassword(tempAuth, values.email, values.password);
       const user = userCredential.user;
 
@@ -88,6 +87,7 @@ export default function AddUserForm() {
         description: error.message || "An unexpected error occurred.",
       });
     } finally {
+        await deleteApp(tempApp);
         setIsLoading(false);
     }
   };
