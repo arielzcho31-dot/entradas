@@ -8,6 +8,7 @@ export type Event = {
   date: string;
   imageUrl: string;
   imageHint: string;
+  artists: string[];
 };
 
 export type TicketType = {
@@ -24,7 +25,6 @@ export type User = {
   name: string;
   email: string;
   role: 'customer' | 'validator' | 'administrator' | 'event organizer';
-  password?: string;
 };
 
 export type Sale = {
@@ -52,44 +52,48 @@ const findImage = (id: string) => {
 export const event: Event = {
     id: '1',
     name: 'Starlight Music Festival',
-    description: 'An unforgettable night under the stars with the world\'s top DJs and artists. Experience music like never before.',
-    category: 'Music',
+    description: 'Una noche inolvidable bajo las estrellas con los mejores DJs y artistas del mundo. Vive la música como nunca antes.',
+    category: 'Música',
     date: '2024-10-26T19:00:00Z',
     ...findImage('event-1'),
+    artists: [
+        'DJ Stardust',
+        'Cosmic Beats',
+        'Galaxy Grooves',
+        'The Orion Experience',
+        'Luna Waves',
+        'Astrofunk',
+        'Nebula Nine',
+        'Meteor Sound',
+    ]
 };
 
 export const ticketTypes: TicketType[] = [
   {
     id: 't1',
     name: 'General Access',
-    description: 'Access to the main festival grounds and stages.',
+    description: 'Acceso a las áreas principales y escenarios del festival.',
     price: 85.0,
     availableTickets: 2000,
   },
   {
     id: 't2',
     name: 'VIP Lounge',
-    description: 'Exclusive access to the VIP lounge with premium views and amenities.',
+    description: 'Acceso exclusivo al lounge VIP con vistas premium y comodidades.',
     price: 150.0,
     availableTickets: 500,
   },
   {
     id: 't3',
     name: 'Backstage Pass',
-    description: 'Get behind the scenes with an all-access backstage pass.',
+    description: 'Accede al detrás de cámaras con un pase de acceso total.',
     price: 300.0,
     availableTickets: 50,
   }
 ];
 
 
-export const users: User[] = [
-    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', role: 'customer' },
-    { id: '2', name: 'Bob Williams', email: 'bob@example.com', role: 'validator' },
-    { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', role: 'administrator' },
-    { id: '4', name: 'Diana Prince', email: 'diana@example.com', role: 'event organizer' },
-    { id: '5', name: 'Ethan Hunt', email: 'ethan@example.com', role: 'customer' },
-  ];
+export const users: User[] = [];
 
 export const sales: Sale[] = [
     {
@@ -132,4 +136,3 @@ export const sales: Sale[] = [
       saleDate: '2024-08-03T11:45:00Z',
     },
   ];
-
