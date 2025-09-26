@@ -15,8 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore"; 
 import { Loader2 } from "lucide-react";
 
 export default function SignUpForm() {
@@ -33,19 +34,29 @@ export default function SignUpForm() {
     const password = formData.get("password") as string;
 
     try {
+      // Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-            displayName: fullName,
-        });
-      }
+      const user = userCredential.user;
+
+      // Update the user's profile with their full name
+      await updateProfile(user, {
+          displayName: fullName,
+      });
+
+      // Create a document for the user in the 'users' collection in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        displayName: fullName,
+        email: user.email,
+        role: "customer", // Assign a default role
+        createdAt: new Date(),
+      });
 
       toast({
         title: "Account Created",
         description: "You have been successfully signed up.",
       });
       router.push("/dashboard");
+
     } catch (error: any) {
       toast({
         variant: "destructive",
