@@ -104,9 +104,9 @@ export default function EventPurchasePage() {
                 </div>
 
                 {/* Quantity */}
-                <div className="space-y-2">
-                     <label className="text-sm font-medium">Cantidad</label>
-                     <div className="flex items-center justify-between rounded-md border p-2">
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Cantidad</label>
+                    <div className="flex items-center w-32 justify-between rounded-md border p-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                             <Minus className="h-4 w-4" />
                         </Button>
@@ -208,4 +208,3 @@ export default function EventPurchasePage() {
     );
   }
 }
-
