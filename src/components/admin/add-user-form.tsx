@@ -23,12 +23,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, UserPlus } from "lucide-react";
+import { auth, db } from "@/lib/firebase"; // Import Firebase config
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  role: z.enum(["admin", "validator", "organizer"]),
+  role: z.enum(["admin", "validator", "organizer", "customer"]),
 });
 
 export default function AddUserForm() {
@@ -48,19 +51,45 @@ export default function AddUserForm() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // We need a temporary secondary app instance to create a user without logging out the admin
+      const { initializeApp } = await import('firebase/app');
+      const { getAuth: getAuthSecondary } = await import('firebase/auth');
+      
+      const tempAppName = `temp-auth-app-${Date.now()}`;
+      const tempApp = initializeApp(auth.app.options, tempAppName);
+      const tempAuth = getAuthSecondary(tempApp);
 
-    setIsLoading(false);
-    
-    console.log("Creating user:", values);
+      const userCredential = await createUserWithEmailAndPassword(tempAuth, values.email, values.password);
+      const user = userCredential.user;
 
-    toast({
-      title: "User Created",
-      description: `User ${values.name} has been successfully created as a ${values.role}.`,
-    });
-    
-    form.reset();
+      await updateProfile(user, {
+          displayName: values.name,
+      });
+
+      await setDoc(doc(db, "users", user.uid), {
+        displayName: values.name,
+        email: user.email,
+        role: values.role,
+        createdAt: new Date(),
+      });
+      
+      toast({
+        title: "User Created",
+        description: `User ${values.name} has been successfully created as a ${values.role}.`,
+      });
+      
+      form.reset();
+
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Error Creating User",
+        description: error.message || "An unexpected error occurred.",
+      });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -121,6 +150,7 @@ export default function AddUserForm() {
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="validator">Validator</SelectItem>
                   <SelectItem value="organizer">Organizer</SelectItem>
+                  <SelectItem value="customer">Customer</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
