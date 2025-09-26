@@ -57,8 +57,11 @@ export default function LoginForm() {
         case "organizer":
           router.push("/dashboard/organizer");
           break;
+        case "customer":
+          router.push("/");
+          break;
         default:
-          router.push("/dashboard"); // Default for customers
+          router.push("/"); // Default to home page
           break;
       }
     } else {
