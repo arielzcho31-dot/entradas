@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -55,8 +56,8 @@ export default function LoginForm() {
 
         login(user);
         toast({
-          title: "Login Successful",
-          description: `Welcome back, ${user.name}!`,
+          title: "Inicio de Sesión Exitoso",
+          description: `¡Bienvenido de vuelta, ${user.name}!`,
         });
 
         // Role-based redirection
@@ -75,13 +76,13 @@ export default function LoginForm() {
             break;
         }
       } else {
-        throw new Error("User data not found in Firestore.");
+        throw new Error("Datos de usuario no encontrados.");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        title: "Error al Iniciar Sesión",
+        description: "Correo o contraseña inválidos. Por favor, intenta de nuevo.",
       });
     } finally {
         setIsLoading(false);
@@ -92,36 +93,36 @@ export default function LoginForm() {
     <Card className="w-full max-w-sm">
       <form onSubmit={handleSubmit}>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account.
+            Ingresa tu correo electrónico para acceder a tu cuenta.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Correo Electrónico</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder="m@ejemplo.com"
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input id="password" name="password" type="password" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign in
+            Iniciar Sesión
           </Button>
           <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
+            ¿No tienes una cuenta?{" "}
             <Link href="/signup" className="underline">
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardFooter>
