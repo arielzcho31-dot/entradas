@@ -71,7 +71,7 @@ export default function SignUpForm() {
     <form onSubmit={handleSubmit} className="text-card-foreground">
       <header className="text-center mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-primary">Crea tu Cuenta</h1>
-        <p className="text-muted-foreground mt-1">Regístrate para unirte a la fiesta.</p>
+        <p className="text-card-foreground/80 mt-1">Regístrate para unirte a la fiesta.</p>
       </header>
 
       <div className="space-y-4">
