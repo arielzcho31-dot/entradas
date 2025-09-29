@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -70,7 +71,9 @@ export default function SignUpForm() {
   return (
     <form onSubmit={handleSubmit} className="text-card-foreground">
       <header className="text-center mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Crea tu Cuenta</h1>
+        <div className="bg-primary text-primary-foreground rounded-lg py-2 mb-2">
+            <h1 className="text-3xl font-bold tracking-tight">Crea tu Cuenta</h1>
+        </div>
         <p className="text-card-foreground/80 mt-1">Regístrate para unirte a la fiesta.</p>
       </header>
 
