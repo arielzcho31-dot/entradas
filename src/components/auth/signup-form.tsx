@@ -81,34 +81,34 @@ export default function SignUpForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="nombre">Nombre</Label>
-            <Input id="nombre" name="nombre" placeholder="Tu nombre" required />
+            <Input id="nombre" name="nombre" placeholder="Tu nombre" required className="bg-white text-black" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="apellido">Apellido</Label>
-            <Input id="apellido" name="apellido" placeholder="Tu apellido" required />
+            <Input id="apellido" name="apellido" placeholder="Tu apellido" required className="bg-white text-black" />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="ci">CI</Label>
-                <Input id="ci" name="ci" placeholder="5.456.125" required />
+                <Input id="ci" name="ci" placeholder="5.456.125" required className="bg-white text-black" />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="numero">Número</Label>
-                <Input id="numero" name="numero" placeholder="0991 123 456" required />
+                <Input id="numero" name="numero" placeholder="0991 123 456" required className="bg-white text-black" />
             </div>
         </div>
         <div className="grid gap-2">
             <Label htmlFor="email">Correo Electrónico</Label>
-            <Input id="email" name="email" type="email" placeholder="tu@email.com" required />
+            <Input id="email" name="email" type="email" placeholder="tu@email.com" required className="bg-white text-black" />
         </div>
         <div className="grid gap-2">
             <Label htmlFor="usuario">Usuario</Label>
-            <Input id="usuario" name="usuario" placeholder="usuario_unico" required />
+            <Input id="usuario" name="usuario" placeholder="usuario_unico" required className="bg-white text-black" />
         </div>
         <div className="grid gap-2">
             <Label htmlFor="universidad">Universidad</Label>
-            <Input id="universidad" name="universidad" placeholder="Ej: UNIDA" required />
+            <Input id="universidad" name="universidad" placeholder="Ej: UNIDA" required className="bg-white text-black" />
         </div>
         <div className="grid gap-2">
             <Label htmlFor="password">Contraseña</Label>
@@ -119,7 +119,7 @@ export default function SignUpForm() {
                     type={showPassword ? "text" : "password"} 
                     placeholder="••••••••" 
                     required 
-                    className="pr-10"
+                    className="pr-10 bg-white text-black"
                 />
                 <button 
                     type="button" 
