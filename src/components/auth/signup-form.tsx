@@ -58,10 +58,17 @@ export default function SignUpForm() {
       router.push("/login");
 
     } catch (error: any) {
+      let description = "Ocurrió un error inesperado.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Este correo electrónico ya está registrado. Por favor, intenta iniciar sesión.";
+      } else if (error.message) {
+        description = error.message;
+      }
+      
       toast({
         variant: "destructive",
         title: "Error en el Registro",
-        description: error.message || "Ocurrió un error inesperado.",
+        description: description,
       });
     } finally {
       setIsLoading(false);
