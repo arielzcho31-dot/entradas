@@ -224,14 +224,15 @@ export default function AdminDashboard() {
               <CardDescription>Una lista de todos los usuarios en el sistema.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button
+               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 onClick={handleRefresh}
                 disabled={refreshing}
+                className="bg-green-500 hover:bg-green-600 text-black h-9 w-9"
               >
-                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                <span className="ml-2 hidden sm:inline">Recargar</span>
+                <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="sr-only">Recargar</span>
               </Button>
               <div className="w-48">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -286,3 +287,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+    
