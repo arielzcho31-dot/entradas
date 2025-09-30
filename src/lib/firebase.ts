@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -10,7 +11,8 @@ const firebaseConfig = {
   "apiKey": "AIzaSyBTmnAwo49pk3j5c6yplCgmU4dw2_e9yHg",
   "authDomain": "studio-2892211255-21eaa.firebaseapp.com",
   "measurementId": "",
-  "messagingSenderId": "557929930511"
+  "messagingSenderId": "557929930511",
+  "storageBucket": "studio-2892211255-21eaa.appspot.com"
 };
 
 // Initialize Firebase
@@ -21,3 +23,6 @@ export const auth = getAuth(app);
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Initialize Cloud Storage and get a reference to the service
+export const storage = getStorage(app);

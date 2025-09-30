@@ -8,7 +8,8 @@ import {
   Minus,
   Plus,
   Upload,
-  Copy
+  Copy,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,13 +25,21 @@ import {
 } from "@/components/ui/select"
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { db, storage } from '@/lib/firebase';
+import { addDoc, collection } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useRouter } from 'next/navigation';
 
 
 export default function EventPurchasePage() {
   const [selectedTicketId, setSelectedTicketId] = useState<string>(ticketTypes[0].id);
   const [quantity, setQuantity] = useState(1);
   const [file, setFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   const handleQuantityChange = (amount: number) => {
     setQuantity((prev) => Math.max(1, prev + amount));
@@ -53,6 +62,71 @@ export default function EventPurchasePage() {
       setFile(selectedFile);
     }
   };
+
+  const handleSubmit = async () => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "No autenticado",
+            description: "Debes iniciar sesión para realizar una compra.",
+        });
+        router.push('/login');
+        return;
+    }
+    if (!file) {
+        toast({
+            variant: "destructive",
+            title: "Falta el comprobante",
+            description: "Por favor, sube el comprobante de tu transferencia.",
+        });
+        return;
+    }
+    
+    setIsLoading(true);
+
+    try {
+        // 1. Upload file to Firebase Storage
+        const fileRef = ref(storage, `receipts/${user.id}_${Date.now()}_${file.name}`);
+        await uploadBytes(fileRef, file);
+
+        // 2. Get download URL
+        const photoURL = await getDownloadURL(fileRef);
+
+        // 3. Create order document in Firestore
+        await addDoc(collection(db, "orders"), {
+            userId: user.id,
+            userName: user.name,
+            userEmail: user.email,
+            ticketId: selectedTicketId,
+            ticketName: selectedTicket?.name,
+            quantity,
+            totalPrice,
+            receiptUrl: photoURL,
+            status: "pending", // pending, verified, rejected
+            createdAt: new Date(),
+        });
+
+        toast({
+            title: "¡Solicitud Enviada!",
+            description: "Tu comprobante ha sido recibido. Recibirás una confirmación pronto.",
+        });
+
+        setFile(null);
+        setQuantity(1);
+        setSelectedTicketId(ticketTypes[0].id);
+
+    } catch (error) {
+        console.error("Error creating order:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo enviar tu solicitud. Inténtalo de nuevo.",
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
 
   const copyToClipboard = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
@@ -140,13 +214,18 @@ export default function EventPurchasePage() {
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                                 accept="image/*,.pdf"
                                 onChange={handleFileChange}
+                                disabled={isLoading}
                             />
                         </div>
                     </div>
 
                     {/* Submit Button */}
-                    <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-black">
-                    Enviar comprobante
+                    <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSubmit} disabled={isLoading || authLoading}>
+                        {isLoading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            "Enviar comprobante"
+                        )}
                     </Button>
 
                     <p className="text-xs text-center text-muted-foreground">
@@ -179,7 +258,7 @@ export default function EventPurchasePage() {
   );
 
   function renderTransferDetail(label: string, value: string, canCopy = false) {
-    const copyToClipboard = (text: string) => {
+    const copyToClipboardFunc = (text: string) => {
         navigator.clipboard.writeText(text);
         toast({
             title: "Copiado",
@@ -194,7 +273,7 @@ export default function EventPurchasePage() {
           <p className="font-semibold">{value}</p>
         </div>
         {canCopy && (
-          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(value)}>
+          <Button variant="ghost" size="sm" onClick={() => copyToClipboardFunc(value)}>
             <Copy className="h-4 w-4 mr-2" />
             Copiar
           </Button>
