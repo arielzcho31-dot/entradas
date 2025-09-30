@@ -81,7 +81,7 @@ export default function Home() {
               <Card key={artist.id} className="overflow-hidden text-center transition-all hover:shadow-xl hover:-translate-y-2">
                 <CardHeader className="p-0">
                   <div className="relative h-48 w-full">
-                    <Image src={artist.imageUrl} alt={artist.name} fill className="object-contain" data-ai-hint={artist.imageHint} />
+                    <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover object-center" data-ai-hint={artist.imageHint} />
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
