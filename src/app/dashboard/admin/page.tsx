@@ -26,17 +26,22 @@ import {
 } from "@/components/ui/select"
 import { Badge } from '@/components/ui/badge';
 import { sales, type User } from '@/lib/placeholder-data';
-import { Users, Ticket, BarChart, Banknote, Loader2 } from 'lucide-react';
+import { Users, Ticket, BarChart, Banknote, Loader2, RefreshCw } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
+    setLoading(true);
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
       const usersData: User[] = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -46,11 +51,45 @@ export default function AdminDashboard() {
       }));
       setUsers(usersData);
       setLoading(false);
+    }, (error) => {
+        console.error("Error al obtener usuarios:", error);
+        setLoading(false);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudieron cargar los usuarios.",
+        });
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
+  
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const usersCollection = collection(db, 'users');
+      const userSnapshot = await getDocs(usersCollection);
+      const usersData: User[] = userSnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().displayName,
+        email: doc.data().email,
+        role: doc.data().role,
+      }));
+      setUsers(usersData);
+      toast({
+        title: "Actualizado",
+        description: "La lista de usuarios ha sido actualizada.",
+      });
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error al recargar",
+        description: "No se pudo actualizar la lista de usuarios.",
+      });
+    } finally {
+        setRefreshing(false);
+    }
+  };
 
   const totalSales = sales.reduce((acc, sale) => acc + sale.totalPrice, 0);
   const totalTicketsSold = sales.reduce((acc, sale) => acc + sale.tickets, 0);
@@ -184,19 +223,30 @@ export default function AdminDashboard() {
               <CardTitle>Gestión de Usuarios</CardTitle>
               <CardDescription>Una lista de todos los usuarios en el sistema.</CardDescription>
             </div>
-            <div className="w-48">
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="bg-white text-black">
-                  <SelectValue placeholder="Filtrar por rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los Roles</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="validator">Validador</SelectItem>
-                  <SelectItem value="organizer">Organizador</SelectItem>
-                  <SelectItem value="customer">Cliente</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="ml-2 hidden sm:inline">Recargar</span>
+              </Button>
+              <div className="w-48">
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="bg-white text-black">
+                    <SelectValue placeholder="Filtrar por rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los Roles</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="validator">Validador</SelectItem>
+                    <SelectItem value="organizer">Organizador</SelectItem>
+                    <SelectItem value="customer">Cliente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardHeader>
