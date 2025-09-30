@@ -13,10 +13,13 @@ import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import type { User } from "@/lib/placeholder-data";
 
 export default function SignUpForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -30,32 +33,43 @@ export default function SignUpForm() {
     const password = formData.get("password") as string;
     
     const fullName = `${nombre} ${apellido}`;
+    const userRole = "customer";
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const authUser = userCredential.user;
 
-      await updateProfile(user, {
+      await updateProfile(authUser, {
         displayName: fullName,
       });
 
-      await setDoc(doc(db, "users", user.uid), {
+      const userDataForDb = {
         displayName: fullName,
-        email: user.email,
-        role: "customer",
+        email: authUser.email,
+        role: userRole,
         createdAt: new Date(),
-        // Storing other fields from form
         ci: formData.get("ci"),
         numero: formData.get("numero"),
         usuario: formData.get("usuario"),
         universidad: formData.get("universidad"),
-      });
+      };
+
+      await setDoc(doc(db, "users", authUser.uid), userDataForDb);
+
+      const user: User = {
+        id: authUser.uid,
+        name: fullName,
+        email: authUser.email!,
+        role: userRole,
+      };
+      
+      login(user);
 
       toast({
-        title: "Cuenta Creada",
-        description: "Tu cuenta ha sido creada con éxito. Por favor, inicia sesión.",
+        title: "¡Bienvenido!",
+        description: `Tu cuenta ha sido creada con éxito, ${user.name}.`,
       });
-      router.push("/login");
+      router.push("/");
 
     } catch (error: any) {
       let description = "Ocurrió un error inesperado.";
