@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export type Event = {
@@ -94,41 +95,40 @@ export const sales: Sale[] = [
     {
       id: 'S1001',
       eventId: '1',
-      eventName: 'Starlight Music Festival',
+      eventName: 'UnidaFest 2025',
       customerId: '1',
       customerName: 'Alice Johnson',
       validatorId: '2',
       validatorName: 'Bob Williams',
       tickets: 2,
-      totalPrice: 170.00,
+      totalPrice: 130000,
       paymentStatus: 'Verified',
       saleDate: '2024-08-01T10:30:00Z',
     },
     {
       id: 'S1002',
       eventId: '1',
-      eventName: 'Starlight Music Festival',
+      eventName: 'UnidaFest 2025',
       customerId: '5',
       customerName: 'Ethan Hunt',
       validatorId: '2',
       validatorName: 'Bob Williams',
       tickets: 1,
-      totalPrice: 250.00,
+      totalPrice: 150000,
       paymentStatus: 'Pending',
       saleDate: '2024-08-02T14:00:00Z',
     },
     {
       id: 'S1003',
       eventId: '1',
-      eventName: 'Starlight Music Festival',
+      eventName: 'UnidaFest 2025',
       customerId: '1',
       customerName: 'Alice Johnson',
       validatorId: '2',
       validatorName: 'Bob Williams',
       tickets: 4,
-      totalPrice: 100.00,
+      totalPrice: 140000,
       paymentStatus: 'Verified',
       saleDate: '2024-08-03T11:45:00Z',
     },
   ];
-

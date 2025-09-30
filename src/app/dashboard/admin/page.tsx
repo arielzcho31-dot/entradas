@@ -78,51 +78,51 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel de Administrador</h1>
         <p className="text-muted-foreground">
-          A complete overview of your platform.
+          Una vista completa de tu plataforma.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
             <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalSales.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <div className="text-2xl font-bold">Gs. {totalSales.toLocaleString('es-PY')}</div>
+            <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
+            <CardTitle className="text-sm font-medium">Entradas Vendidas</CardTitle>
             <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{totalTicketsSold}</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+            <p className="text-xs text-muted-foreground">+180.1% desde el mes pasado</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Events</CardTitle>
+            <CardTitle className="text-sm font-medium">Eventos Activos</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">Only one event available.</p>
+            <p className="text-xs text-muted-foreground">Solo un evento disponible.</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Usuarios Totales</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">+1 since last hour</p>
+            <p className="text-xs text-muted-foreground">+1 desde la última hora</p>
           </CardContent>
         </Card>
       </div>
@@ -131,17 +131,17 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>A list of the most recent transactions.</CardDescription>
+              <CardTitle>Ventas Recientes</CardTitle>
+              <CardDescription>Una lista de las transacciones más recientes.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="hidden sm:table-cell">Event</TableHead>
-                    <TableHead className="hidden md:table-cell">Date</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead className="hidden sm:table-cell">Evento</TableHead>
+                    <TableHead className="hidden md:table-cell">Fecha</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -154,9 +154,9 @@ export default function AdminDashboard() {
                         {sale.eventName}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {new Date(sale.saleDate).toLocaleDateString()}
+                        {new Date(sale.saleDate).toLocaleDateString('es-ES')}
                       </TableCell>
-                      <TableCell className="text-right">${sale.totalPrice.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">Gs. {sale.totalPrice.toLocaleString('es-PY')}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -167,8 +167,8 @@ export default function AdminDashboard() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Create User</CardTitle>
-              <CardDescription>Add a new user and assign a role.</CardDescription>
+              <CardTitle>Crear Usuario</CardTitle>
+              <CardDescription>Añade un nuevo usuario y asígnale un rol.</CardDescription>
             </CardHeader>
             <CardContent>
               <AddUserForm />
@@ -181,20 +181,20 @@ export default function AdminDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>A list of all users in the system.</CardDescription>
+              <CardTitle>Gestión de Usuarios</CardTitle>
+              <CardDescription>Una lista de todos los usuarios en el sistema.</CardDescription>
             </div>
             <div className="w-48">
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by role" />
+                <SelectTrigger className="bg-white text-black">
+                  <SelectValue placeholder="Filtrar por rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="all">Todos los Roles</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="validator">Validator</SelectItem>
-                  <SelectItem value="organizer">Organizer</SelectItem>
-                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="validator">Validador</SelectItem>
+                  <SelectItem value="organizer">Organizador</SelectItem>
+                  <SelectItem value="customer">Cliente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -209,9 +209,9 @@ export default function AdminDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Nombre</TableHead>
                   <TableHead className="hidden sm:table-cell">Email</TableHead>
-                  <TableHead className="text-right">Role</TableHead>
+                  <TableHead className="text-right">Rol</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

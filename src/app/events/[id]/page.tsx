@@ -87,7 +87,7 @@ export default function EventPurchasePage() {
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Tipo de entrada</label>
                         <Select value={selectedTicketId} onValueChange={setSelectedTicketId}>
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="w-full bg-white text-black">
                                 <SelectValue placeholder="Selecciona un tipo de entrada" />
                             </SelectTrigger>
                             <SelectContent>
@@ -104,11 +104,11 @@ export default function EventPurchasePage() {
                     <div className="flex items-center justify-between">
                         <label className="text-sm font-medium">Cantidad</label>
                         <div className="flex items-center w-32 justify-between rounded-md border bg-white p-2">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-black" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                                 <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="text-lg font-bold">{quantity}</span>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(1)}>
+                            <span className="text-lg font-bold text-black">{quantity}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-black" onClick={() => handleQuantityChange(1)}>
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
@@ -163,10 +163,10 @@ export default function EventPurchasePage() {
                 <div className="space-y-3">
                     {renderTransferDetail("Banco", "Banco Familiar SAECA")}
                     {renderTransferDetail("Titular", "CESAR ZARACHO")}
-                    {renderTransferDetail("N° de Cedula", "5811557")}
+                    {renderTransferDetail("N° de Cédula", "5811557")}
                     {renderTransferDetail("N° de cuenta Desde Banco Familiar", "81-5394274", true)}
                     {renderTransferDetail("N° de cuenta Desde Otro Banco", "815394274", true)}
-                    {renderTransferDetail("Alias / N° Telefono", "0991840873", true)}
+                    {renderTransferDetail("Alias / N° Teléfono", "0991840873", true)}
                     <div className="flex justify-center pt-4">
                         <Image src="/qr-code.png" alt="QR Code" width={200} height={200} data-ai-hint="qr code payment" />
                     </div>

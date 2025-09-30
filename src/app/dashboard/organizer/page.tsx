@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -14,23 +15,23 @@ export default function OrganizerDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Organizer Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Panel de Organizador</h1>
         <p className="text-muted-foreground">
-          Manage event access by scanning tickets.
+          Gestiona el acceso al evento escaneando entradas.
         </p>
       </div>
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle>Ticket Scanner</CardTitle>
+          <CardTitle>Escaner de Entradas</CardTitle>
           <CardDescription>
-            Verify tickets to grant entry to your event.
+            Verifica las entradas para permitir el acceso a tu evento.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="scan" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="scan">
-                <QrCode className="mr-2 h-4 w-4" /> Scan
+                <QrCode className="mr-2 h-4 w-4" /> Escanear
               </TabsTrigger>
               <TabsTrigger value="manual">
                 <Type className="mr-2 h-4 w-4" /> Manual
@@ -43,19 +44,19 @@ export default function OrganizerDashboard() {
               <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed bg-muted/50 p-12">
                 <QrCode className="h-16 w-16 text-muted-foreground" />
                 <p className="text-muted-foreground">
-                  Ready to scan QR codes.
+                  Listo para escanear códigos QR.
                 </p>
-                <Button>Open Camera</Button>
+                <Button>Abrir Cámara</Button>
               </div>
             </TabsContent>
             <TabsContent value="manual" className="mt-6">
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Enter the ticket code manually below.
+                  Ingresa el código de la entrada manualmente.
                 </p>
                 <div className="flex gap-2">
-                  <Input placeholder="TICKET-CODE-12345" />
-                  <Button>Verify</Button>
+                  <Input placeholder="TICKET-CODE-12345" className="bg-white text-black" />
+                  <Button>Verificar</Button>
                 </div>
               </div>
             </TabsContent>
@@ -63,7 +64,7 @@ export default function OrganizerDashboard() {
               <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed bg-muted/50 p-12">
                 <Nfc className="h-16 w-16 text-muted-foreground" />
                 <p className="text-muted-foreground">
-                  Tap NFC-enabled ticket or device to scan.
+                  Toca la entrada o dispositivo con NFC para escanear.
                 </p>
               </div>
             </TabsContent>

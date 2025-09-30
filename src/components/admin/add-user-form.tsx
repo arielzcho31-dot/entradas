@@ -30,9 +30,9 @@ import { doc, setDoc } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
+  email: z.string().email({ message: "Por favor, ingresa un correo válido." }),
+  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
   role: z.enum(["admin", "validator", "organizer", "customer"]),
 });
 
@@ -59,8 +59,8 @@ export default function AddUserForm() {
     if (!currentAdmin) {
         toast({
             variant: "destructive",
-            title: "Authentication Error",
-            description: "Admin user not found. Please log in again.",
+            title: "Error de Autenticación",
+            description: "Usuario administrador no encontrado. Por favor, inicia sesión de nuevo.",
         });
         setIsLoading(false);
         return;
@@ -85,8 +85,8 @@ export default function AddUserForm() {
       });
       
       toast({
-        title: "User Created",
-        description: `User ${values.name} has been successfully created as a ${values.role}.`,
+        title: "Usuario Creado",
+        description: `El usuario ${values.name} ha sido creado como ${values.role}.`,
       });
       
       form.reset();
@@ -94,8 +94,8 @@ export default function AddUserForm() {
     } catch (error: any) {
        toast({
         variant: "destructive",
-        title: "Error Creating User",
-        description: error.message || "An unexpected error occurred.",
+        title: "Error al Crear Usuario",
+        description: error.message || "Ocurrió un error inesperado.",
       });
     } finally {
         // Sign out the newly created user and restore the admin session.
@@ -117,9 +117,9 @@ export default function AddUserForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Nombre Completo</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" {...field} className="bg-white text-black" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,7 +132,7 @@ export default function AddUserForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="user@example.com" {...field} />
+                <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -143,9 +143,9 @@ export default function AddUserForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Contraseña</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" placeholder="••••••••" {...field} className="bg-white text-black" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -156,18 +156,18 @@ export default function AddUserForm() {
           name="role"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel>Rol</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
+                  <SelectTrigger className="bg-white text-black">
+                    <SelectValue placeholder="Selecciona un rol" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="validator">Validator</SelectItem>
-                  <SelectItem value="organizer">Organizer</SelectItem>
-                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="validator">Validador</SelectItem>
+                  <SelectItem value="organizer">Organizador</SelectItem>
+                  <SelectItem value="customer">Cliente</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -180,7 +180,7 @@ export default function AddUserForm() {
           ) : (
             <UserPlus className="mr-2 h-4 w-4" />
           )}
-          Create User
+          Crear Usuario
         </Button>
       </form>
     </Form>
