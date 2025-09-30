@@ -7,6 +7,12 @@
       "imageHint": "music festival"
     },
     {
+      "id": "event-main-collage",
+      "description": "A collage of a vibrant music festival at night.",
+      "imageUrl": "https://storage.googleapis.com/project-spark-349cf.appspot.com/assets/4043b2f5-b283-4a11-b455-873b88d8b941_2x.jpeg",
+      "imageHint": "music festival"
+    },
+    {
       "id": "background-1",
       "description": "A crowd of people enjoying a festival at night.",
       "imageUrl": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwYXJ0eSUyMGNyb3dkfGVufDB8fHx8MTc1ODkyMjI2M3ww&ixlib=rb-4.1.0&q=80&w=1080",

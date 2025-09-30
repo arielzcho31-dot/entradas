@@ -1,4 +1,3 @@
-
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export type Event = {
@@ -58,7 +57,7 @@ export const event: Event = {
     category: 'Música',
     date: '2025-11-14T19:00:00Z',
     location: 'Estacionamiento Unida',
-    ...findImage('event-1'),
+    ...findImage('event-main-collage'),
     artists: [
         'kchiporros',
         'japiaguar',
