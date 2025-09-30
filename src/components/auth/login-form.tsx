@@ -62,19 +62,10 @@ export default function LoginForm() {
         });
 
         // Role-based redirection
-        switch (user.role) {
-          case "admin":
-            router.push("/dashboard/admin");
-            break;
-          case "validator":
-            router.push("/dashboard/validator");
-            break;
-          case "organizer":
-            router.push("/dashboard/organizer");
-            break;
-          default:
-            router.push("/");
-            break;
+        if (user.role === 'admin' || user.role === 'validator' || user.role === 'organizer') {
+            router.push('/dashboard');
+        } else {
+            router.push('/');
         }
       } else {
         throw new Error("Datos de usuario no encontrados.");
