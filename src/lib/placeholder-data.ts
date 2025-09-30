@@ -131,3 +131,4 @@ export const sales: Sale[] = [
       saleDate: '2024-08-03T11:45:00Z',
     },
   ];
+
