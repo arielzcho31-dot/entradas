@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { auth, db } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -28,6 +28,7 @@ export default function LoginForm() {
   const { toast } = useToast();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -112,7 +113,22 @@ export default function LoginForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input id="password" name="password" type="password" required className="bg-white text-black" />
+            <div className="relative">
+                <Input 
+                    id="password" 
+                    name="password" 
+                    type={showPassword ? "text" : "password"} 
+                    required 
+                    className="bg-white text-black pr-10" 
+                />
+                 <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+                >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
