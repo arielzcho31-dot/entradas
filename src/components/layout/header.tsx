@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Ticket } from 'lucide-react';
+import { Ticket, BarChart2, Shield, ScanLine, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -12,9 +12,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User as UserIcon, LogOut } from 'lucide-react';
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 
 export default function Header() {
@@ -67,6 +67,36 @@ export default function Header() {
                             </p>
                         </div>
                         </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {user.role !== 'customer' && (
+                           <DropdownMenuGroup>
+                             <DropdownMenuLabel>Paneles</DropdownMenuLabel>
+                             {['admin'].includes(user.role) && (
+                               <Link href="/dashboard/admin">
+                                 <DropdownMenuItem>
+                                   <BarChart2 className="mr-2 h-4 w-4" />
+                                   <span>Admin</span>
+                                 </DropdownMenuItem>
+                               </Link>
+                             )}
+                              {['admin', 'validator'].includes(user.role) && (
+                               <Link href="/dashboard/validator">
+                                 <DropdownMenuItem>
+                                   <Shield className="mr-2 h-4 w-4" />
+                                   <span>Validador</span>
+                                 </DropdownMenuItem>
+                               </Link>
+                             )}
+                              {['admin', 'organizer'].includes(user.role) && (
+                               <Link href="/dashboard/organizer">
+                                 <DropdownMenuItem>
+                                   <ScanLine className="mr-2 h-4 w-4" />
+                                   <span>Organizador</span>
+                                 </DropdownMenuItem>
+                               </Link>
+                             )}
+                           </DropdownMenuGroup>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout}>
                             <LogOut className="mr-2 h-4 w-4" />
