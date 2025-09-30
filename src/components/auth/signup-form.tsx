@@ -27,12 +27,10 @@ export default function SignUpForm() {
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
-    const nombre = formData.get("nombre") as string;
-    const apellido = formData.get("apellido") as string;
+    const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    const fullName = `${nombre} ${apellido}`;
     const userRole = "customer";
 
     try {
@@ -95,20 +93,14 @@ export default function SignUpForm() {
         <div className="bg-primary text-primary-foreground rounded-lg py-2 mb-2">
             <h1 className="text-3xl font-bold tracking-tight">Crea tu Cuenta</h1>
         </div>
-        <p className="text-card-foreground/80 mt-1">Regístrate para unirte a la fiesta.</p>
+        <p className="text-muted-foreground/80 mt-1">Regístrate para unirte a la fiesta.</p>
       </header>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="nombre">Nombre</Label>
-            <Input id="nombre" name="nombre" placeholder="Tu nombre" required className="bg-white text-black" />
+         <div className="grid gap-2">
+            <Label htmlFor="fullName">Nombre Completo</Label>
+            <Input id="fullName" name="fullName" placeholder="Tu nombre completo" required className="bg-white text-black" />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="apellido">Apellido</Label>
-            <Input id="apellido" name="apellido" placeholder="Tu apellido" required className="bg-white text-black" />
-          </div>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="ci">CI</Label>
