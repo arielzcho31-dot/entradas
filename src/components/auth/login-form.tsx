@@ -107,11 +107,12 @@ export default function LoginForm() {
               type="email"
               placeholder="m@ejemplo.com"
               required
+              className="bg-white text-black"
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input id="password" name="password" type="password" required />
+            <Input id="password" name="password" type="password" required className="bg-white text-black" />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
