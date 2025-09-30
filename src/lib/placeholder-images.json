@@ -9,7 +9,7 @@
     {
       "id": "artist-kchiporros",
       "description": "Photo of the band Kchiporros.",
-      "imageUrl": "/kchiporros.jpg",
+      "imageUrl": "/kchiporros.png",
       "imageHint": "music band"
     },
     {
@@ -27,7 +27,7 @@
     {
       "id": "artist-dj-preda",
       "description": "Photo of DJ Preda.",
-      "imageUrl": "/dj_preda.jpg",
+      "imageUrl": "/dj_preda.png",
       "imageHint": "dj music"
     },
     {
