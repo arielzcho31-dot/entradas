@@ -124,120 +124,128 @@ export default function AddUserForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre Completo</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="ci"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CI</FormLabel>
-              <FormControl>
-                <Input placeholder="5.456.125" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="numero"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Número</FormLabel>
-              <FormControl>
-                <Input placeholder="0991 123 456" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="usuario"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Usuario</FormLabel>
-              <FormControl>
-                <Input placeholder="usuario_unico" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="universidad"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Universidad</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: UNIDA" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-         <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contraseña</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} className="bg-white text-black" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rol</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Nombre Completo</FormLabel>
                 <FormControl>
-                  <SelectTrigger className="bg-white text-black">
-                    <SelectValue placeholder="Selecciona un rol" />
-                  </SelectTrigger>
+                    <Input placeholder="John Doe" {...field} className="bg-white text-black" />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="validator">Validador</SelectItem>
-                  <SelectItem value="organizer">Organizador</SelectItem>
-                  <SelectItem value="customer">Cliente</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                    <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+            control={form.control}
+            name="ci"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>CI</FormLabel>
+                <FormControl>
+                    <Input placeholder="5.456.125" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="numero"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Número</FormLabel>
+                <FormControl>
+                    <Input placeholder="0991 123 456" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+            control={form.control}
+            name="usuario"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Usuario</FormLabel>
+                <FormControl>
+                    <Input placeholder="usuario_unico" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="universidad"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Universidad</FormLabel>
+                <FormControl>
+                    <Input placeholder="Ej: UNIDA" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Contraseña</FormLabel>
+                <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} className="bg-white text-black" />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Rol</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                    <SelectTrigger className="bg-white text-black">
+                        <SelectValue placeholder="Selecciona un rol" />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="validator">Validador</SelectItem>
+                    <SelectItem value="organizer">Organizador</SelectItem>
+                    <SelectItem value="customer">Cliente</SelectItem>
+                    </SelectContent>
+                </Select>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+        </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
