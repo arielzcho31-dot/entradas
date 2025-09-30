@@ -9,7 +9,15 @@ export type Event = {
   location: string;
   imageUrl: string;
   imageHint: string;
-  artists: string[];
+  artists: Artist[];
+};
+
+export type Artist = {
+  id: string;
+  name: string;
+  bio: string;
+  imageUrl: string;
+  imageHint: string;
 };
 
 export type TicketType = {
@@ -59,10 +67,30 @@ export const event: Event = {
     location: 'Estacionamiento Unida',
     ...findImage('event-main-collage'),
     artists: [
-        'kchiporros',
-        'japiaguar',
-        'chapa-c',
-        'marilina',
+        {
+          id: 'kchiporros',
+          name: 'Kchiporros',
+          bio: 'La banda que revolucionó la cumbia paraguaya con su energía contagiosa y un estilo único que fusiona ritmos latinos.',
+          ...findImage('artist-kchiporros'),
+        },
+        {
+          id: 'japiaguar',
+          name: 'Japiaguar',
+          bio: 'Con su mezcla de cumbia, reggae y rock, Japiaguar trae una propuesta fresca y vibrante que te hará bailar toda la noche.',
+          ...findImage('artist-japiaguar'),
+        },
+        {
+          id: 'chapa-c',
+          name: 'Chapa C',
+          bio: 'El dúo icónico del reguetón cubano que marcó una generación. Prepárate para cantar sus grandes éxitos a todo pulmón.',
+           ...findImage('artist-chapa-c'),
+        },
+        {
+          id: 'marilina',
+          name: 'Marilina',
+          bio: 'La reina de la cumbia, conocida por su carisma arrollador y una voz que llega al corazón de todos sus seguidores.',
+           ...findImage('artist-marilina'),
+        }
     ]
 };
 

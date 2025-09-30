@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -24,7 +25,7 @@ type Quantities = {
   [key: string]: number;
 };
 
-export default function Home() {
+export default function EventCard() {
   const [quantities, setQuantities] = useState<Quantities>(
     ticketTypes.reduce((acc, type) => {
       acc[type.id] = 0;

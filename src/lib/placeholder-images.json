@@ -1,64 +1,46 @@
 {
   "placeholderImages": [
     {
-      "id": "event-1",
-      "description": "A vibrant music festival at night.",
-      "imageUrl": "/fondo1.png",
-      "imageHint": "music festival"
-    },
-    {
       "id": "event-main-collage",
       "description": "A collage of a vibrant music festival at night.",
       "imageUrl": "/fondo1.png",
       "imageHint": "music festival"
     },
     {
+      "id": "artist-kchiporros",
+      "description": "Photo of the band Kchiporros.",
+      "imageUrl": "https://images.unsplash.com/photo-1501612780327-45045538702b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtdXNpYyUyMGJhbmR8ZW58MHx8fHwxNzU5MTQ4NjM3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "music band"
+    },
+    {
+      "id": "artist-japiaguar",
+      "description": "Photo of the band Japiaguar.",
+      "imageUrl": "https://images.unsplash.com/photo-1676149486839-8d883f97d558?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtdXNpYyUyMGdyb3VwfGVufDB8fHx8MTc1OTE5NzQxOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "music group"
+    },
+    {
+      "id": "artist-chapa-c",
+      "description": "Photo of the music duo Chapa C.",
+      "imageUrl": "https://images.unsplash.com/photo-1743503142120-607641289f48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtdXNpYyUyMGR1b3xlbnwwfHx8fDE3NTkxOTc0MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "music duo"
+    },
+    {
+      "id": "artist-marilina",
+      "description": "Photo of the singer Marilina.",
+      "imageUrl": "https://images.unsplash.com/photo-1620398155783-00a7906bade5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmZW1hbGUlMjBzaW5nZXJ8ZW58MHx8fHwxNzU5MTMwMjc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "female singer"
+    },
+    {
+      "id": "unida-campus",
+      "description": "A picture of the UNIDA university campus.",
+      "imageUrl": "https://images.unsplash.com/photo-1583373834259-46cc92173cb7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx1bml2ZXJzaXR5JTIwY2FtcHVzfGVufDB8fHx8MTc1OTE5NTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "university campus"
+    },
+    {
       "id": "background-1",
       "description": "A crowd of people enjoying a festival at night.",
       "imageUrl": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwYXJ0eSUyMGNyb3dkfGVufDB8fHx8MTc1ODkyMjI2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "party crowd"
-    },
-    {
-      "id": "event-2",
-      "description": "A focused tech conference with a speaker on stage.",
-      "imageUrl": "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0ZWNoJTIwY29uZmVyZW5jZXxlbnwwfHx8fDE3NTg3ODUwNzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "tech conference"
-    },
-    {
-      "id": "event-3",
-      "description": "A gourmet food festival with various dishes on display.",
-      "imageUrl": "https://images.unsplash.com/photo-1551883709-2516220df0bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmb29kJTIwZmVzdGl2YWx8ZW58MHx8fHwxNzU4ODYwMjg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "food festival"
-    },
-    {
-      "id": "event-4",
-      "description": "An exciting sports match in a large stadium.",
-      "imageUrl": "https://images.unsplash.com/photo-1534375754046-291eefbbeff7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzcG9ydHMlMjBzdGFkaXVtfGVufDB8fHx8MTc1ODg0MzY5OHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "sports stadium"
-    },
-    {
-      "id": "event-5",
-      "description": "An art exhibition in a modern gallery.",
-      "imageUrl": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcnQlMjBnYWxsZXJ5fGVufDB8fHx8MTc1ODc5MDEyNHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "art gallery"
-    },
-    {
-      "id": "event-6",
-      "description": "A community marathon with runners at the starting line.",
-      "imageUrl": "https://images.unsplash.com/photo-1708352012130-2cb43e2c8327?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cnVubmluZyUyMG1hcmF0aG9ufGVufDB8fHx8MTc1ODg4ODgwOHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "running marathon"
-    },
-    {
-      "id": "event-7",
-      "description": "A film festival premiere with a red carpet.",
-      "imageUrl": "https://images.unsplash.com/photo-1617452483350-987d0a68c62b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmaWxtJTIwcHJlbWllcmV8ZW58MHx8fHwxNzU4OTA0MzI2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "film premiere"
-    },
-    {
-      "id": "event-8",
-      "description": "A serene yoga retreat in a natural setting.",
-      "imageUrl": "https://images.unsplash.com/photo-1517363898874-737b62a7db91?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8eW9nYSUyMHJldHJlYXR8ZW58MHx8fHwxNzU4ODc1NzA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "yoga retreat"
     }
   ]
 }
