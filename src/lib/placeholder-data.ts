@@ -80,16 +80,16 @@ export const event: Event = {
           ...findImage('artist-japiaguar'),
         },
         {
-          id: 'chapa-c',
-          name: 'Chapa C',
-          bio: 'El dúo icónico del reguetón cubano que marcó una generación. Prepárate para cantar sus grandes éxitos a todo pulmón.',
-           ...findImage('artist-chapa-c'),
+          id: 'qmbia-juan',
+          name: 'Qmbia Juan',
+          bio: 'El fenómeno de la cumbia que te pondrá a gozar con sus ritmos pegajosos y su carisma inigualable. ¡Imposible no bailar!',
+           ...findImage('artist-qmbia-juan'),
         },
         {
-          id: 'marilina',
-          name: 'Marilina',
-          bio: 'La reina de la cumbia, conocida por su carisma arrollador y una voz que llega al corazón de todos sus seguidores.',
-           ...findImage('artist-marilina'),
+          id: 'dj-preda',
+          name: 'DJ Preda',
+          bio: 'El DJ que está rompiendo esquemas con sus sets explosivos. Una mezcla de los mejores hits que te mantendrá en la pista.',
+           ...findImage('artist-dj-preda'),
         }
     ]
 };
