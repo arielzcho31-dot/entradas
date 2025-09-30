@@ -331,7 +331,7 @@ export default function AdminDashboard() {
                             <TableCell>
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <Button variant="link" className="p-0 h-auto font-medium text-foreground hover:text-primary">
+                                        <Button variant="link" className="p-0 h-auto font-medium text-card-foreground hover:text-primary">
                                             {user.name}
                                         </Button>
                                     </DialogTrigger>
