@@ -34,6 +34,10 @@ const formSchema = z.object({
   email: z.string().email({ message: "Por favor, ingresa un correo válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
   role: z.enum(["admin", "validator", "organizer", "customer"]),
+  ci: z.string().min(1, { message: "El CI es requerido." }),
+  numero: z.string().min(1, { message: "El número es requerido." }),
+  usuario: z.string().min(1, { message: "El usuario es requerido." }),
+  universidad: z.string().min(1, { message: "La universidad es requerida." }),
 });
 
 export default function AddUserForm() {
@@ -48,6 +52,10 @@ export default function AddUserForm() {
       email: "",
       password: "",
       role: "validator",
+      ci: "",
+      numero: "",
+      usuario: "",
+      universidad: "",
     },
   });
 
@@ -82,6 +90,10 @@ export default function AddUserForm() {
         email: newUser.email,
         role: values.role,
         createdAt: new Date(),
+        ci: values.ci,
+        numero: values.numero,
+        usuario: values.usuario,
+        universidad: values.universidad,
       });
       
       toast({
@@ -133,6 +145,58 @@ export default function AddUserForm() {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ci"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>CI</FormLabel>
+              <FormControl>
+                <Input placeholder="5.456.125" {...field} className="bg-white text-black" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="numero"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Número</FormLabel>
+              <FormControl>
+                <Input placeholder="0991 123 456" {...field} className="bg-white text-black" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="usuario"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Usuario</FormLabel>
+              <FormControl>
+                <Input placeholder="usuario_unico" {...field} className="bg-white text-black" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="universidad"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Universidad</FormLabel>
+              <FormControl>
+                <Input placeholder="Ej: UNIDA" {...field} className="bg-white text-black" />
               </FormControl>
               <FormMessage />
             </FormItem>
