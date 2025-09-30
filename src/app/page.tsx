@@ -80,8 +80,8 @@ export default function Home() {
             {event.artists.map((artist) => (
               <Card key={artist.id} className="overflow-hidden text-center transition-all hover:shadow-xl hover:-translate-y-2">
                 <CardHeader className="p-0">
-                  <div className="relative h-40 w-full">
-                    <Image src={artist.imageUrl} alt={artist.name} fill className="object-cover" data-ai-hint={artist.imageHint} />
+                  <div className="relative h-48 w-full">
+                    <Image src={artist.imageUrl} alt={artist.name} fill className="object-contain" data-ai-hint={artist.imageHint} />
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
