@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { event, ticketTypes } from '@/lib/placeholder-data';
 import {
@@ -9,7 +9,9 @@ import {
   Plus,
   Upload,
   Copy,
-  Loader2
+  Loader2,
+  File as FileIcon,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +30,7 @@ import { useRouter } from 'next/navigation';
 export default function EventPurchasePage() {
   const [quantity, setQuantity] = useState(1);
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
@@ -41,19 +44,48 @@ export default function EventPurchasePage() {
   const totalPrice = ticketType.price * quantity;
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+      setPreview(null);
+    }
+    
+    if (event.target.files && event.target.files.length > 0) {
       const selectedFile = event.target.files[0];
-      if (selectedFile.size > 10 * 1024 * 1024) { // 10 MB limit
+      if (selectedFile.size > 2 * 1024 * 1024) { // 2 MB limit
          toast({
           variant: "destructive",
           title: "Archivo muy grande",
-          description: "El tamaño máximo del archivo es de 10 MB.",
+          description: "El tamaño máximo del archivo es de 2 MB.",
         });
+        event.target.value = ''; // Clear the input
         return;
       }
       setFile(selectedFile);
+      if (selectedFile.type.startsWith('image/')) {
+        setPreview(URL.createObjectURL(selectedFile));
+      }
     }
   };
+
+  const clearFile = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+    setFile(null);
+    setPreview(null);
+    // Reset file input
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if(fileInput) fileInput.value = '';
+  }
+
+  // Clean up preview URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (preview) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -103,7 +135,7 @@ export default function EventPurchasePage() {
             description: "Tu comprobante ha sido recibido. Recibirás una confirmación pronto.",
         });
 
-        setFile(null);
+        clearFile();
         setQuantity(1);
 
     } catch (error) {
@@ -182,22 +214,37 @@ export default function EventPurchasePage() {
                     {/* File Upload */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Comprobante de transferencia (imagen o PDF)</label>
-                        <div className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                            <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                            <p className="text-sm text-center text-muted-foreground">
-                                {file ? file.name : 
-                                (<>
-                                    <span className="font-semibold text-primary">Click</span> o arrastrá tu archivo aquí
-                                </>)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Tamaño máx. 10 MB — 1 archivo</p>
+                        <div className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                            {preview ? (
+                                <div className="relative w-full h-full">
+                                    <Image src={preview} alt="Vista previa" layout="fill" objectFit="contain" className="rounded-lg" />
+                                    <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={clearFile}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : file ? (
+                                <div className="text-center">
+                                  <FileIcon className="w-10 h-10 text-muted-foreground mb-2 mx-auto" />
+                                  <p className="text-sm font-semibold">{file.name}</p>
+                                  <p className="text-xs text-muted-foreground">{Math.round(file.size / 1024)} KB</p>
+                                  <Button variant="link" size="sm" className="text-destructive" onClick={clearFile}>Quitar</Button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <Upload className="w-8 h-8 text-muted-foreground mb-2 mx-auto" />
+                                    <p className="text-sm text-muted-foreground">
+                                        <span className="font-semibold text-primary">Click</span> o arrastrá tu archivo aquí
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Tamaño máx. 2 MB</p>
+                                </div>
+                            )}
                             <Input 
                                 id="file-upload" 
                                 type="file" 
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
                                 accept="image/*,.pdf"
                                 onChange={handleFileChange}
-                                disabled={isLoading}
+                                disabled={isLoading || !!file}
                             />
                         </div>
                     </div>
@@ -265,3 +312,5 @@ export default function EventPurchasePage() {
     );
   }
 }
+
+    
