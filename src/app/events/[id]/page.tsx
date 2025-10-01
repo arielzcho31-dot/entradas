@@ -39,6 +39,17 @@ export default function EventPurchasePage() {
 
   const qrCodeImage = PlaceHolderImages.find(img => img.id === 'qr-code');
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        variant: "destructive",
+        title: "Acceso denegado",
+        description: "Debes iniciar sesión para comprar entradas.",
+      });
+      router.push('/login');
+    }
+  }, [user, authLoading, router, toast]);
+
   const handleQuantityChange = (amount: number) => {
     setQuantity((prev) => Math.max(1, prev + amount));
   };
@@ -161,6 +172,14 @@ export default function EventPurchasePage() {
         description: `${fieldName} copiado al portapapeles.`,
     });
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
   
   return (
     <div className="bg-background">
