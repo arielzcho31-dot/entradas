@@ -20,27 +20,16 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
 
-type Quantities = {
-  [key: string]: number;
-};
-
 export default function Home() {
-  const [quantities, setQuantities] = useState<Quantities>(
-    ticketTypes.reduce((acc, type) => {
-      acc[type.id] = 0;
-      return acc;
-    }, {} as Quantities)
-  );
+  const [quantity, setQuantity] = useState(0);
+  const ticketType = ticketTypes[0];
 
-  const handleQuantityChange = (ticketId: string, amount: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [ticketId]: Math.max(0, Math.min(5, prev[ticketId] + amount)),
-    }));
+  const handleQuantityChange = (amount: number) => {
+    setQuantity((prev) => Math.max(0, Math.min(5, prev + amount)));
   };
   
-  const totalTickets = Object.values(quantities).reduce((sum, q) => sum + q, 0);
-  const totalPrice = ticketTypes.reduce((sum, type) => sum + type.price * quantities[type.id], 0);
+  const totalTickets = quantity;
+  const totalPrice = ticketType.price * quantity;
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
@@ -90,24 +79,22 @@ export default function Home() {
                     <div className="space-y-6">
                         {/* Ticket Types */}
                         <div className="space-y-4">
-                          {ticketTypes.map((type) => (
-                            <div key={type.id} className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex items-center justify-between rounded-lg border p-4">
                               <div>
-                                <h3 className="font-semibold">{type.name}</h3>
-                                <p className="text-sm text-muted-foreground">{type.description}</p>
-                                <p className="text-lg font-bold text-primary">${type.price.toFixed(2)}</p>
+                                <h3 className="font-semibold">{ticketType.name}</h3>
+                                <p className="text-sm text-muted-foreground">{ticketType.description}</p>
+                                <p className="text-lg font-bold text-primary">Gs. {ticketType.price.toLocaleString('es-PY')}</p>
                               </div>
                                <div className="flex items-center gap-2">
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, -1)} disabled={quantities[type.id] === 0}>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(-1)} disabled={quantity === 0}>
                                     <Minus className="h-4 w-4" />
                                 </Button>
-                                <span className="w-10 text-center text-lg font-bold">{quantities[type.id]}</span>
-                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(type.id, 1)} disabled={quantities[type.id] === 5}>
+                                <span className="w-10 text-center text-lg font-bold">{quantity}</span>
+                                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(1)} disabled={quantity === 5}>
                                     <Plus className="h-4 w-4" />
                                 </Button>
                             </div>
                             </div>
-                          ))}
                         </div>
                         
                         <Separator />
@@ -116,7 +103,7 @@ export default function Home() {
                         <div className="space-y-4">
                            <div className="flex items-center justify-between">
                              <span className="text-xl font-semibold">Total</span>
-                             <span className="text-3xl font-extrabold text-primary">${totalPrice.toFixed(2)}</span>
+                             <span className="text-3xl font-extrabold text-primary">Gs. {totalPrice.toLocaleString('es-PY')}</span>
                            </div>
                            <Button size="lg" className="w-full" disabled={totalTickets === 0}>
                               <Ticket className="mr-2 h-5 w-5" />

@@ -16,13 +16,6 @@ import {
   Card,
   CardContent,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
@@ -33,7 +26,6 @@ import { useRouter } from 'next/navigation';
 
 
 export default function EventPurchasePage() {
-  const [selectedTicketId, setSelectedTicketId] = useState<string>(ticketTypes[0].id);
   const [quantity, setQuantity] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,9 +36,9 @@ export default function EventPurchasePage() {
   const handleQuantityChange = (amount: number) => {
     setQuantity((prev) => Math.max(1, prev + amount));
   };
-
-  const selectedTicket = ticketTypes.find(t => t.id === selectedTicketId);
-  const totalPrice = selectedTicket ? selectedTicket.price * quantity : 0;
+  
+  const ticketType = ticketTypes[0];
+  const totalPrice = ticketType.price * quantity;
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -97,8 +89,8 @@ export default function EventPurchasePage() {
             userId: user.id,
             userName: user.name,
             userEmail: user.email,
-            ticketId: selectedTicketId,
-            ticketName: selectedTicket?.name,
+            ticketId: ticketType.id,
+            ticketName: ticketType.name,
             quantity,
             totalPrice,
             receiptUrl: photoURL,
@@ -113,7 +105,6 @@ export default function EventPurchasePage() {
 
         setFile(null);
         setQuantity(1);
-        setSelectedTicketId(ticketTypes[0].id);
 
     } catch (error) {
         console.error("Error creating order:", error);
@@ -160,18 +151,10 @@ export default function EventPurchasePage() {
                     {/* Ticket Type */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Tipo de entrada</label>
-                        <Select value={selectedTicketId} onValueChange={setSelectedTicketId}>
-                            <SelectTrigger className="w-full bg-white text-black">
-                                <SelectValue placeholder="Selecciona un tipo de entrada" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ticketTypes.map((type) => (
-                                    <SelectItem key={type.id} value={type.id}>
-                                        {type.name} — Gs. {type.price.toLocaleString('es-PY')}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center justify-between rounded-md border bg-muted/50 p-3">
+                            <span className="font-semibold">{ticketType.name}</span>
+                            <span className="font-bold text-primary">Gs. {ticketType.price.toLocaleString('es-PY')}</span>
+                        </div>
                     </div>
 
                     {/* Quantity */}

@@ -22,7 +22,7 @@ export type Artist = {
 
 export type TicketType = {
   id: string;
-  name: string;
+  name:string;
   description: string;
   price: number;
   availableTickets: number;
@@ -101,20 +101,6 @@ export const ticketTypes: TicketType[] = [
     description: 'Acceso a las áreas principales y escenarios del festival.',
     price: 35000,
     availableTickets: 2000,
-  },
-  {
-    id: 't2',
-    name: 'Lounge VIP',
-    description: 'Acceso exclusivo al lounge VIP con vistas premium y comodidades.',
-    price: 65000,
-    availableTickets: 500,
-  },
-  {
-    id: 't3',
-    name: 'Pase Backstage',
-    description: 'Accede al detrás de cámaras con un pase de acceso total.',
-    price: 150000,
-    availableTickets: 50,
   }
 ];
 
