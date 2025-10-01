@@ -30,16 +30,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, Timestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { Check, X, Eye, Loader2 } from 'lucide-react';
 
 interface Order {
     id: string;
+    userId: string;
     userName: string;
     totalPrice: number;
     receiptUrl: string;
     createdAt: Timestamp;
     status: "pending" | "verified" | "rejected";
+    quantity: number;
 }
 
 export default function ValidatorDashboard() {
@@ -56,7 +58,7 @@ export default function ValidatorDashboard() {
         querySnapshot.forEach((doc) => {
             ordersData.push({ id: doc.id, ...doc.data() } as Order);
         });
-        setPendingOrders(ordersData);
+        setPendingOrders(ordersData.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()));
         setLoading(false);
     }, (error) => {
         console.error("Error fetching pending orders: ", error);
@@ -71,21 +73,46 @@ export default function ValidatorDashboard() {
     return () => unsubscribe();
   }, [toast]);
 
-  const handleUpdateStatus = async (orderId: string, status: "verified" | "rejected") => {
-    setUpdatingId(orderId);
+  const handleUpdateStatus = async (order: Order, newStatus: "verified" | "rejected") => {
+    setUpdatingId(order.id);
     try {
-        const orderRef = doc(db, "orders", orderId);
-        await updateDoc(orderRef, { status: status });
+        const batch = writeBatch(db);
+        const orderRef = doc(db, "orders", order.id);
+        batch.update(orderRef, { status: newStatus });
+
+        if (newStatus === 'verified') {
+            // Find the user's ticket and enable it
+            const ticketsRef = collection(db, "tickets");
+            const q = query(ticketsRef, where("userId", "==", order.userId), where("status", "==", "disabled"));
+            const ticketSnapshot = await getDocs(q);
+
+            if (!ticketSnapshot.empty) {
+                // Assuming one ticket document per user for this event logic
+                 const ticketDoc = ticketSnapshot.docs[0];
+                 const ticketRef = doc(db, "tickets", ticketDoc.id);
+                 batch.update(ticketRef, { 
+                    status: "enabled",
+                    enabledAt: new Date(),
+                    orderId: order.id,
+                });
+            } else {
+                 throw new Error(`No se encontró un ticket deshabilitado para el usuario ${order.userName}.`);
+            }
+        }
+        
+        await batch.commit();
+
         toast({
             title: "Orden Actualizada",
-            description: `La orden ha sido marcada como ${status === 'verified' ? 'verificada' : 'rechazada'}.`,
+            description: `La orden ha sido marcada como ${newStatus === 'verified' ? 'verificada' : 'rechazada'}.`,
         });
-    } catch (error) {
+
+    } catch (error: any) {
         console.error("Error updating order status: ", error);
         toast({
             variant: "destructive",
             title: "Error",
-            description: "No se pudo actualizar la orden."
+            description: error.message || "No se pudo actualizar la orden."
         });
     } finally {
         setUpdatingId(null);
@@ -118,7 +145,8 @@ export default function ValidatorDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="hidden sm:table-cell">Fecha</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">Cantidad</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
                   <TableHead className="text-center">Acciones</TableHead>
                 </TableRow>
@@ -130,8 +158,11 @@ export default function ValidatorDashboard() {
                       <TableCell className="font-medium">
                         {order.userName}
                       </TableCell>
-                       <TableCell>
-                        {order.createdAt.toDate().toLocaleDateString('es-ES')}
+                       <TableCell className="hidden sm:table-cell">
+                        {order.createdAt.toDate().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </TableCell>
+                       <TableCell className="hidden md:table-cell text-center">
+                        {order.quantity}
                       </TableCell>
                       <TableCell className="text-right">
                         Gs. {order.totalPrice.toLocaleString('es-PY')}
@@ -164,14 +195,14 @@ export default function ValidatorDashboard() {
                                     <div className="flex gap-2">
                                         <Button 
                                             variant="destructive"
-                                            onClick={() => handleUpdateStatus(order.id, 'rejected')}
+                                            onClick={() => handleUpdateStatus(order, 'rejected')}
                                             disabled={updatingId === order.id}
                                         >
                                             {updatingId === order.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <X className="mr-2 h-4 w-4" />} Rechazar
                                         </Button>
                                         <Button 
                                             className="bg-green-600 hover:bg-green-700"
-                                            onClick={() => handleUpdateStatus(order.id, 'verified')}
+                                            onClick={() => handleUpdateStatus(order, 'verified')}
                                             disabled={updatingId === order.id}
                                         >
                                            {updatingId === order.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Check className="mr-2 h-4 w-4" />} Aprobar
@@ -185,7 +216,7 @@ export default function ValidatorDashboard() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center h-24">
+                    <TableCell colSpan={5} className="text-center h-24">
                       No hay pagos pendientes para verificar.
                     </TableCell>
                   </TableRow>

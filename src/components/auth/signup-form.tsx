@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, writeBatch } from "firebase/firestore";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import type { User } from "@/lib/placeholder-data";
@@ -30,6 +30,7 @@ export default function SignUpForm() {
     const fullName = formData.get("fullName") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const ci = formData.get("ci") as string;
     
     const userRole = "customer";
 
@@ -41,18 +42,38 @@ export default function SignUpForm() {
         displayName: fullName,
       });
 
+      const batch = writeBatch(db);
+
+      // 1. Create user document
+      const userRef = doc(db, "users", authUser.uid);
       const userDataForDb = {
         displayName: fullName,
         email: authUser.email,
         role: userRole,
         createdAt: new Date(),
-        ci: formData.get("ci"),
+        ci: ci,
         numero: formData.get("numero"),
         usuario: formData.get("usuario"),
         universidad: formData.get("universidad"),
       };
+      batch.set(userRef, userDataForDb);
 
-      await setDoc(doc(db, "users", authUser.uid), userDataForDb);
+      // 2. Create associated ticket document
+      const ticketRef = doc(collection(db, "tickets"));
+      const ticketCode = `TICKET-${authUser.uid.substring(0, 8).toUpperCase()}`;
+      batch.set(ticketRef, {
+        userId: authUser.uid,
+        userCi: ci,
+        userName: fullName,
+        ticketCode: ticketCode,
+        status: "disabled", // disabled, enabled, used
+        createdAt: new Date(),
+        orderId: null,
+        enabledAt: null,
+        usedAt: null,
+      });
+
+      await batch.commit();
 
       const user: User = {
         id: authUser.uid,
