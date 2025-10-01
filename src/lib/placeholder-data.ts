@@ -52,9 +52,16 @@ export type Sale = {
 
 const findImage = (id: string) => {
   const image = PlaceHolderImages.find((img) => img.id === id);
+  if (!image) {
+    console.warn(`Image with id "${id}" not found. Using placeholder.`);
+    return {
+      imageUrl: 'https://picsum.photos/seed/placeholder/600/400',
+      imageHint: 'placeholder image',
+    };
+  }
   return {
-    imageUrl: image?.imageUrl ?? 'https://picsum.photos/seed/placeholder/600/400',
-    imageHint: image?.imageHint ?? 'placeholder image',
+    imageUrl: image.imageUrl,
+    imageHint: image.imageHint,
   };
 };
 

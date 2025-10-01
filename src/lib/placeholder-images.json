@@ -41,6 +41,12 @@
       "description": "A crowd of people enjoying a festival at night.",
       "imageUrl": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwYXJ0eSUyMGNyb3dkfGVufDB8fHx8MTc1ODkyMjI2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "party crowd"
+    },
+    {
+      "id": "qr-code",
+      "description": "QR code for payment.",
+      "imageUrl": "/qr-code.png",
+      "imageHint": "qr code payment"
     }
   ]
 }

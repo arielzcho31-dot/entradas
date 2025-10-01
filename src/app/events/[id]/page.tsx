@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { event, ticketTypes } from '@/lib/placeholder-data';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Minus,
   Plus,
@@ -35,6 +36,8 @@ export default function EventPurchasePage() {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  const qrCodeImage = PlaceHolderImages.find(img => img.id === 'qr-code');
 
   const handleQuantityChange = (amount: number) => {
     setQuantity((prev) => Math.max(1, prev + amount));
@@ -276,9 +279,11 @@ export default function EventPurchasePage() {
                     {renderTransferDetail("N° de cuenta Desde Banco Familiar", "81-5394274", true)}
                     {renderTransferDetail("N° de cuenta Desde Otro Banco", "815394274", true)}
                     {renderTransferDetail("Alias / N° Teléfono", "0991840873", true)}
-                    <div className="flex justify-center pt-4">
-                        <Image src="/qr-code.png" alt="QR Code" width={200} height={200} data-ai-hint="qr code payment" />
-                    </div>
+                    {qrCodeImage && (
+                        <div className="flex justify-center pt-4">
+                            <Image src={qrCodeImage.imageUrl} alt="QR Code" width={200} height={200} data-ai-hint={qrCodeImage.imageHint} />
+                        </div>
+                    )}
                 </div>
               </CardContent>
            </Card>
@@ -312,5 +317,3 @@ export default function EventPurchasePage() {
     );
   }
 }
-
-    
