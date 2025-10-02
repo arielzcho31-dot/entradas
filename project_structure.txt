@@ -1,0 +1,82 @@
+
+# ANÁLISIS DE LA ESTRUCTURA DEL PROYECTO
+
+Este documento detalla la función de cada archivo y carpeta principal en la aplicación, proporcionando una guía clara de la arquitectura del proyecto.
+
+---
+
+## 📂 Archivos de Configuración (Raíz del Proyecto)
+
+- **`.env`**: Almacena variables de entorno sensibles, como claves de API, que no deben ser públicas.
+- **`README.md`**: Documentación principal del proyecto, con instrucciones para empezar a desarrollar.
+- **`apphosting.yaml`**: Archivo de configuración para Firebase App Hosting. Gestiona cómo se despliega y ejecuta tu aplicación en la nube.
+- **`components.json`**: Archivo de configuración para `shadcn/ui`, que define la ubicación de los componentes y el estilo base.
+- **`cors.json`**: Configura las reglas de CORS (Cross-Origin Resource Sharing) para Firebase Storage, permitiendo que tu aplicación web acceda a los archivos almacenados (como los comprobantes).
+- **`next.config.ts`**: Archivo de configuración principal de Next.js. Aquí se definen opciones como los dominios de imágenes permitidos y otras configuraciones avanzadas del framework.
+- **`package.json`**: Define las dependencias del proyecto (librerías como React, Next.js, Firebase) y los scripts (comandos como `npm run dev`, `npm run build`).
+- **`tsconfig.json`**: Archivo de configuración de TypeScript. Define las reglas para el compilador de TypeScript, asegurando la calidad y consistencia del código.
+
+---
+
+## 📂 `src/app/` - Rutas y Páginas
+
+Esta carpeta utiliza el App Router de Next.js. Cada subcarpeta define una ruta en la aplicación.
+
+- **`layout.tsx`**: El diseño raíz de toda la aplicación. Envuelve todas las páginas y contiene elementos comunes como el `Header`, `Footer` y el `AuthProvider` para la gestión de usuarios.
+- **`globals.css`**: Archivo de estilos globales y variables de color para el tema de la aplicación (CSS variables de Tailwind).
+- **`page.tsx`**: La página de inicio (`/`). Muestra la información principal del evento, el line-up de artistas y los detalles de los organizadores.
+
+- **`login/page.tsx`**: La página de inicio de sesión (`/login`). Contiene el formulario para que los usuarios accedan.
+- **`signup/page.tsx`**: La página de registro (`/signup`). Contiene el formulario para que nuevos usuarios creen una cuenta.
+
+- **`events/[id]/page.tsx`**: La página de compra de entradas (`/events/1`, por ejemplo). Aquí los usuarios seleccionan la cantidad, suben su comprobante de pago y envían su orden de compra.
+
+- **`dashboard/layout.tsx`**: Diseño específico para todas las páginas del panel de control (`/dashboard/*`).
+- **`dashboard/page.tsx`**: La página principal del dashboard (`/dashboard`). Actúa como un centro de navegación, mostrando las diferentes secciones (Admin, Validador, Organizador) según el rol del usuario.
+- **`dashboard/admin/page.tsx`**: El panel de administración (`/dashboard/admin`). Permite gestionar usuarios, ver estadísticas de ventas y crear nuevos usuarios con roles específicos.
+- **`dashboard/validator/page.tsx`**: El panel del validador (`/dashboard/validator`). Muestra una lista de órdenes de compra pendientes y permite a los validadores ver los comprobantes y aprobar o rechazar las transacciones.
+- **`dashboard/organizer/page.tsx`**: El panel del organizador (`/dashboard/organizer`). Contiene el escáner de códigos QR para verificar la validez de las entradas en el acceso al evento.
+
+---
+
+## 📂 `src/components/` - Componentes Reutilizables
+
+- **`ui/`**: Componentes de la librería `shadcn/ui`, que son la base de la interfaz de usuario (botones, tarjetas, diálogos, etc.).
+- **`auth/`**:
+    - **`login-form.tsx`**: El formulario y la lógica para el inicio de sesión de usuarios.
+    - **`signup-form.tsx`**: El formulario y la lógica para el registro de nuevos usuarios, incluyendo la creación del `ticket` asociado en estado "disabled".
+- **`layout/`**:
+    - **`header.tsx`**: La barra de navegación superior, que cambia dinámicamente si el usuario ha iniciado sesión.
+    - **`footer.tsx`**: El pie de página de la aplicación.
+- **`admin/add-user-form.tsx`**: Formulario utilizado en el panel de administrador para crear nuevos usuarios con roles específicos.
+
+---
+
+## 📂 `src/lib/` - Lógica de Negocio y Utilidades
+
+- **`firebase.ts`**: Archivo central para la configuración y inicialización de Firebase (autenticación, base de datos Firestore y almacenamiento Storage).
+- **`placeholder-data.ts`**: Contiene datos estáticos y de ejemplo para la aplicación, como la información del evento, artistas y tipos de entrada.
+- **`placeholder-images.json` y `placeholder-images.ts`**: Centralizan la información de las imágenes de marcador de posición para una mejor organización.
+- **`utils.ts`**: Contiene funciones de utilidad, como `cn`, que ayuda a combinar clases de Tailwind CSS de manera segura.
+- **`actions.ts`**: Archivo destinado a contener Server Actions de Next.js (actualmente vacío).
+
+---
+
+## 📂 `src/context/` - Contexto Global de React
+
+- **`auth-context.tsx`**: Un Context Provider de React que gestiona el estado de autenticación del usuario en toda la aplicación. Permite saber si un usuario ha iniciado sesión, quién es y proporciona funciones para `login` y `logout`.
+
+---
+
+## 📂 `src/hooks/` - Hooks Personalizados de React
+
+- **`use-toast.ts`**: Hook personalizado para mostrar notificaciones (toasts) en la interfaz de usuario.
+- **`use-mobile.ts`**: Hook que detecta si el usuario está en un dispositivo móvil, para adaptar la interfaz.
+
+---
+
+## 📂 `src/ai/` - Inteligencia Artificial (Genkit)
+
+- **`genkit.ts`**: Configuración global del cliente de Genkit, definiendo el modelo de IA a utilizar.
+- **`dev.ts`**: Archivo para iniciar el entorno de desarrollo de Genkit.
+
