@@ -43,7 +43,7 @@ import type { User as UserData } from '@/lib/placeholder-data';
 import { Users, Ticket, BarChart, Banknote, Loader2, RefreshCw, Search } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, query, where, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
     });
 
     // Fetch Recent Sales
-    const recentSalesQuery = query(collection(db, "orders"), where("status", "==", "verified"), orderBy("createdAt", "desc"), limit(5));
+    const recentSalesQuery = query(collection(db, "orders"), where("status", "==", "verified"), limit(5));
      const unsubscribeRecentSales = onSnapshot(recentSalesQuery, (snapshot) => {
         const salesData: Sale[] = snapshot.docs.map(doc => {
             const data = doc.data();
@@ -125,6 +125,8 @@ export default function AdminDashboard() {
                 totalPrice: data.totalPrice,
             };
         });
+        // Sort in client
+        salesData.sort((a, b) => b.saleDate.getTime() - a.saleDate.getTime());
         setRecentSales(salesData);
     });
 
