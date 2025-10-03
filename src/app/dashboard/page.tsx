@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart2, Shield, ScanLine, Home, Ticket } from "lucide-react";
+import { BarChart2, Shield, ScanLine, Home, Ticket, QrCode } from "lucide-react";
 import Link from "next/link";
 import { event } from "@/lib/placeholder-data";
 import { useAuth } from "@/context/auth-context";
@@ -30,11 +30,12 @@ export default function DashboardPage() {
     const canSeeAdmin = user.role === 'admin';
     const canSeeValidator = ['admin', 'validator'].includes(user.role);
     const canSeeOrganizer = ['admin', 'organizer', 'validator'].includes(user.role);
+    const isCustomer = user.role === 'customer';
 
 
     return (
         <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-4">Bienvenido a tu Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-4">Bienvenido a tu Dashboard, {user.name}</h1>
             <p className="text-muted-foreground mb-8">
                 Selecciona una acción para continuar. Las opciones disponibles dependen de tu rol.
             </p>
@@ -61,6 +62,19 @@ export default function DashboardPage() {
                         </CardHeader>
                     </Card>
                 </Link>
+                {isCustomer && (
+                     <Link href="/dashboard/my-tickets">
+                        <Card className="hover:border-primary hover:bg-muted/50 transition-colors h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <QrCode className="h-6 w-6 text-primary" />
+                                    <span>Mis Entradas</span>
+                                </CardTitle>
+                                <CardDescription>Verifica el estado y accede a tu QR.</CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </Link>
+                )}
                 {canSeeAdmin && (
                     <Link href="/dashboard/admin">
                         <Card className="hover:border-primary hover:bg-muted/50 transition-colors h-full">
@@ -69,7 +83,7 @@ export default function DashboardPage() {
                                     <BarChart2 className="h-6 w-6 text-primary" />
                                     <span>Administrador</span>
                                 </CardTitle>
-                                <CardDescription>Supervisa todas las operaciones, usuarios y datos de ventas.</CardDescription>
+                                <CardDescription>Supervisa todas las operaciones y datos.</CardDescription>
                             </CardHeader>
                         </Card>
                     </Link>
@@ -95,7 +109,7 @@ export default function DashboardPage() {
                                     <ScanLine className="h-6 w-6 text-primary" />
                                     <span>Organizador</span>
                                 </CardTitle>
-                                <CardDescription>Gestiona el acceso al evento escaneando las entradas.</CardDescription>
+                                <CardDescription>Gestiona el acceso al evento escaneando entradas.</CardDescription>
                             </CardHeader>
                         </Card>
                     </Link>
@@ -104,3 +118,5 @@ export default function DashboardPage() {
         </div>
     )
 }
+
+    

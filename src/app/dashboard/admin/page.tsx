@@ -39,11 +39,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input";
 import { Badge } from '@/components/ui/badge';
-import { sales, type User as UserData } from '@/lib/placeholder-data';
+import type { User as UserData } from '@/lib/placeholder-data';
 import { Users, Ticket, BarChart, Banknote, Loader2, RefreshCw, Search } from 'lucide-react';
 import AddUserForm from '@/components/admin/add-user-form';
 import { db } from '@/lib/firebase';
-import { collection, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -55,17 +55,30 @@ interface User extends UserData {
     universidad?: string;
 }
 
+interface Sale {
+    id: string;
+    customerName: string;
+    eventName: string;
+    saleDate: Date;
+    totalPrice: number;
+}
+
 export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
   const [searchEmail, setSearchEmail] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalTicketsSold, setTotalTicketsSold] = useState(0);
+  const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     setLoading(true);
-    const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
+    
+    // Fetch Users
+    const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
       const usersData: User[] = snapshot.docs.map(doc => ({
         id: doc.id,
         name: doc.data().displayName,
@@ -77,10 +90,8 @@ export default function AdminDashboard() {
         universidad: doc.data().universidad,
       }));
       setUsers(usersData);
-      setLoading(false);
     }, (error) => {
         console.error("Error al obtener usuarios:", error);
-        setLoading(false);
         toast({
             variant: "destructive",
             title: "Error",
@@ -88,12 +99,48 @@ export default function AdminDashboard() {
         });
     });
 
-    return () => unsubscribe();
+    // Fetch Verified Orders for stats
+    const verifiedOrdersQuery = query(collection(db, "orders"), where("status", "==", "verified"));
+    const unsubscribeOrders = onSnapshot(verifiedOrdersQuery, (snapshot) => {
+        let salesSum = 0;
+        let ticketsSum = 0;
+        snapshot.forEach(doc => {
+            salesSum += doc.data().totalPrice;
+            ticketsSum += doc.data().quantity;
+        });
+        setTotalSales(salesSum);
+        setTotalTicketsSold(ticketsSum);
+    });
+
+    // Fetch Recent Sales
+    const recentSalesQuery = query(collection(db, "orders"), where("status", "==", "verified"), orderBy("createdAt", "desc"), limit(5));
+     const unsubscribeRecentSales = onSnapshot(recentSalesQuery, (snapshot) => {
+        const salesData: Sale[] = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                customerName: data.userName,
+                eventName: data.ticketName, 
+                saleDate: data.createdAt.toDate(),
+                totalPrice: data.totalPrice,
+            };
+        });
+        setRecentSales(salesData);
+    });
+
+    setLoading(false);
+
+    return () => {
+      unsubscribeUsers();
+      unsubscribeOrders();
+      unsubscribeRecentSales();
+    };
   }, [toast]);
   
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
+      // Re-fetch users
       const usersCollection = collection(db, 'users');
       const userSnapshot = await getDocs(usersCollection);
       const usersData: User[] = userSnapshot.docs.map(doc => ({
@@ -107,23 +154,33 @@ export default function AdminDashboard() {
         universidad: doc.data().universidad,
       }));
       setUsers(usersData);
+      
+       // Re-fetch stats
+      const verifiedOrdersQuery = query(collection(db, "orders"), where("status", "==", "verified"));
+      const ordersSnapshot = await getDocs(verifiedOrdersQuery);
+      let salesSum = 0;
+      let ticketsSum = 0;
+      ordersSnapshot.forEach(doc => {
+          salesSum += doc.data().totalPrice;
+          ticketsSum += doc.data().quantity;
+      });
+      setTotalSales(salesSum);
+      setTotalTicketsSold(ticketsSum);
+
       toast({
         title: "Actualizado",
-        description: "La lista de usuarios ha sido actualizada.",
+        description: "Los datos del panel han sido actualizados.",
       });
     } catch (error) {
        toast({
         variant: "destructive",
         title: "Error al recargar",
-        description: "No se pudo actualizar la lista de usuarios.",
+        description: "No se pudo actualizar la información.",
       });
     } finally {
         setRefreshing(false);
     }
   };
-
-  const totalSales = sales.reduce((acc, sale) => acc + sale.totalPrice, 0);
-  const totalTicketsSold = sales.reduce((acc, sale) => acc + sale.tickets, 0);
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -170,7 +227,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Gs. {totalSales.toLocaleString('es-PY')}</div>
-            <p className="text-xs text-muted-foreground">+20.1% desde el mes pasado</p>
+            <p className="text-xs text-muted-foreground">Total de ventas verificadas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -180,7 +237,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{totalTicketsSold}</div>
-            <p className="text-xs text-muted-foreground">+180.1% desde el mes pasado</p>
+            <p className="text-xs text-muted-foreground">Total de entradas verificadas.</p>
           </CardContent>
         </Card>
         <Card>
@@ -200,7 +257,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">+1 desde la última hora</p>
+            <p className="text-xs text-muted-foreground">Usuarios registrados en el sistema.</p>
           </CardContent>
         </Card>
       </div>
@@ -210,7 +267,7 @@ export default function AdminDashboard() {
            <Card>
             <AccordionTrigger className="p-6">
                 <div className="text-left">
-                  <CardTitle>Ventas Recientes</CardTitle>
+                  <CardTitle>Ventas Verificadas Recientes</CardTitle>
                   <CardDescription className="mt-1">Una lista de las transacciones más recientes.</CardDescription>
                 </div>
             </AccordionTrigger>
@@ -220,13 +277,13 @@ export default function AdminDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Cliente</TableHead>
-                        <TableHead className="hidden sm:table-cell">Evento</TableHead>
+                        <TableHead className="hidden sm:table-cell">Entrada</TableHead>
                         <TableHead className="hidden md:table-cell">Fecha</TableHead>
                         <TableHead className="text-right">Monto</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sales.slice(0, 5).map((sale) => (
+                      {recentSales.map((sale) => (
                         <TableRow key={sale.id}>
                           <TableCell>
                             <div className="font-medium">{sale.customerName}</div>
@@ -370,3 +427,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+    
