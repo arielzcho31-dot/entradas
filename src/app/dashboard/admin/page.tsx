@@ -93,12 +93,14 @@ export default function AdminDashboard() {
         universidad: doc.data().universidad,
       }));
       setUsers(usersData);
+      setLoading(false);
     }, (error) => {
         const permissionError = new FirestorePermissionError({
           path: usersCollectionRef.path,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
+        setLoading(false); // Stop loading on error
     });
 
     // Fetch Verified Orders for stats
@@ -121,7 +123,7 @@ export default function AdminDashboard() {
     });
 
     // Fetch Recent Sales
-    const recentSalesQuery = query(collection(db, "orders"), where("status", "==", "verified"), limit(5));
+    const recentSalesQuery = query(collection(db, "orders"), where("status", "==", "verified"));
      const unsubscribeRecentSales = onSnapshot(recentSalesQuery, (snapshot) => {
         const salesData: Sale[] = snapshot.docs.map(doc => {
             const data = doc.data();
@@ -135,7 +137,7 @@ export default function AdminDashboard() {
         });
         // Sort in client
         salesData.sort((a, b) => b.saleDate.getTime() - a.saleDate.getTime());
-        setRecentSales(salesData);
+        setRecentSales(salesData.slice(0, 5));
     }, (error) => {
         const permissionError = new FirestorePermissionError({
           path: 'orders',
@@ -143,8 +145,6 @@ export default function AdminDashboard() {
         });
         errorEmitter.emit('permission-error', permissionError);
     });
-
-    setLoading(false);
 
     return () => {
       unsubscribeUsers();
@@ -399,7 +399,8 @@ export default function AdminDashboard() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredUsers.map((user) => (
+                        {filteredUsers.length > 0 ? (
+                        filteredUsers.map((user) => (
                         <TableRow key={user.id}>
                             <TableCell>
                                 <Dialog>
@@ -431,7 +432,14 @@ export default function AdminDashboard() {
                             </Badge>
                             </TableCell>
                         </TableRow>
-                        ))}
+                        ))
+                        ) : (
+                        <TableRow>
+                            <TableCell colSpan={3} className="h-24 text-center">
+                            No se encontraron usuarios.
+                            </TableCell>
+                        </TableRow>
+                        )}
                     </TableBody>
                     </Table>
                 )}
@@ -443,3 +451,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+    
