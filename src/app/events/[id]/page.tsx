@@ -26,6 +26,8 @@ import { db, storage } from '@/lib/firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 
 export default function EventPurchasePage() {
@@ -123,26 +125,33 @@ export default function EventPurchasePage() {
     }
 
     setIsLoading(true);
+    
+    const orderData = {
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        ticketId: ticketType.id,
+        ticketName: ticketType.name,
+        quantity,
+        totalPrice,
+        receiptUrl: "https://images.unsplash.com/photo-1588196749597-c070a9059ed7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyZWNlaXB0fGVufDB8fHx8MTc1ODkyMjM2MHww&ixlib=rb-4.1.0&q=80&w=1080", // Usamos la URL falsa
+        status: "pending",
+        createdAt: new Date(),
+    };
 
     try {
         // Simular una demora de carga para la animación
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // En lugar de subir el archivo, usamos una URL de marcador de posición.
-        const placeholderReceiptUrl = "https://images.unsplash.com/photo-1588196749597-c070a9059ed7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyZWNlaXB0fGVufDB8fHx8MTc1ODkyMjM2MHww&ixlib=rb-4.1.0&q=80&w=1080";
-
         // Registrar la orden en Firestore
-        await addDoc(collection(db, "orders"), {
-            userId: user.id,
-            userName: user.name,
-            userEmail: user.email,
-            ticketId: ticketType.id,
-            ticketName: ticketType.name,
-            quantity,
-            totalPrice,
-            receiptUrl: placeholderReceiptUrl, // Usamos la URL falsa
-            status: "pending",
-            createdAt: new Date(),
+        await addDoc(collection(db, "orders"), orderData).catch((error) => {
+            const permissionError = new FirestorePermissionError({
+                path: 'orders',
+                operation: 'create',
+                requestResourceData: orderData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw error; // Re-throw to be caught by the outer catch
         });
 
         toast({
@@ -155,13 +164,14 @@ export default function EventPurchasePage() {
         router.push('/dashboard/my-tickets');
 
 
-    } catch (error) {
-        console.error("Error en el proceso de envío:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudo enviar tu solicitud. Inténtalo de nuevo.",
-        });
+    } catch (error: any) {
+        if (error.name !== 'FirestorePermissionError') {
+             toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo enviar tu solicitud. Inténtalo de nuevo.",
+            });
+        }
     } finally {
         setIsLoading(false);
     }
@@ -340,5 +350,3 @@ export default function EventPurchasePage() {
     );
   }
 }
-
-    

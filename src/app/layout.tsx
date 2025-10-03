@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { AuthProvider } from '@/context/auth-context';
+import { FirebaseErrorListener } from '@/components/firebase-error-listener';
 
 export const metadata: Metadata = {
   title: 'TicketWise',
@@ -33,6 +34,7 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
+            <FirebaseErrorListener />
             <div className="relative flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>

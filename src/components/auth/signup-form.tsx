@@ -15,6 +15,8 @@ import { doc, setDoc, writeBatch } from "firebase/firestore";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import type { User } from "@/lib/placeholder-data";
+import { errorEmitter } from "@/lib/error-emitter";
+import { FirestorePermissionError } from "@/lib/errors";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -73,7 +75,18 @@ export default function SignUpForm() {
         usedAt: null,
       });
 
-      await batch.commit();
+      await batch.commit().catch((error) => {
+        // This is a simplified catch for the batch write.
+        // A more granular approach would be needed to know which write failed.
+        const permissionError = new FirestorePermissionError({
+          path: `batch write for user ${authUser.uid}`,
+          operation: 'write',
+          requestResourceData: { userDataForDb, ticketData: '...' }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // Re-throw to be caught by the outer catch block
+        throw error;
+      });
 
       const user: User = {
         id: authUser.uid,
@@ -94,15 +107,17 @@ export default function SignUpForm() {
       let description = "Ocurrió un error inesperado.";
       if (error.code === 'auth/email-already-in-use') {
         description = "Este correo electrónico ya está registrado. Por favor, intenta iniciar sesión.";
-      } else if (error.message) {
+      } else if (error.name !== 'FirestorePermissionError') { // Don't show generic toast for our custom error
         description = error.message;
       }
       
-      toast({
-        variant: "destructive",
-        title: "Error en el Registro",
-        description: description,
-      });
+      if (error.name !== 'FirestorePermissionError') {
+        toast({
+          variant: "destructive",
+          title: "Error en el Registro",
+          description: description,
+        });
+      }
     } finally {
       setIsLoading(false);
     }

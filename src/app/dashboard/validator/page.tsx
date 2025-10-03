@@ -32,6 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, doc, updateDoc, Timestamp, getDocs, writeBatch } from 'firebase/firestore';
 import { Check, X, Eye, Loader2 } from 'lucide-react';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 interface Order {
     id: string;
@@ -61,34 +63,31 @@ export default function ValidatorDashboard() {
         setPendingOrders(ordersData.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()));
         setLoading(false);
     }, (error) => {
-        console.error("Error fetching pending orders: ", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudieron cargar las órdenes pendientes."
+        const permissionError = new FirestorePermissionError({
+          path: 'orders',
+          operation: 'list',
         });
+        errorEmitter.emit('permission-error', permissionError);
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, []);
 
   const handleUpdateStatus = async (order: Order, newStatus: "verified" | "rejected") => {
     setUpdatingId(order.id);
+    const batch = writeBatch(db);
     try {
-        const batch = writeBatch(db);
         const orderRef = doc(db, "orders", order.id);
         batch.update(orderRef, { status: newStatus });
 
         if (newStatus === 'verified') {
-            // Find the user's ticket and enable it if it's currently disabled.
             const ticketsRef = collection(db, "tickets");
             const q = query(ticketsRef, where("userId", "==", order.userId));
             const ticketSnapshot = await getDocs(q);
 
             if (!ticketSnapshot.empty) {
                 const ticketDoc = ticketSnapshot.docs[0];
-                // Only update the ticket if it's currently disabled.
                 if (ticketDoc.data().status === 'disabled') {
                     const ticketRef = doc(db, "tickets", ticketDoc.id);
                     batch.update(ticketRef, { 
@@ -98,13 +97,18 @@ export default function ValidatorDashboard() {
                     });
                 }
             } else {
-                 // This case should ideally not happen if a ticket is created on sign-up.
-                 // We can log this for debugging but not block the order verification.
                  console.warn(`No se encontró un ticket para el usuario ${order.userName}. La orden fue verificada de todas formas.`);
             }
         }
         
-        await batch.commit();
+        await batch.commit().catch(error => {
+            const permissionError = new FirestorePermissionError({
+                path: 'batch update',
+                operation: 'write',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw error;
+        });
 
         toast({
             title: "Orden Actualizada",
@@ -112,12 +116,13 @@ export default function ValidatorDashboard() {
         });
 
     } catch (error: any) {
-        console.error("Error updating order status: ", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: error.message || "No se pudo actualizar la orden."
-        });
+        if (error.name !== 'FirestorePermissionError') {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error.message || "No se pudo actualizar la orden."
+            });
+        }
     } finally {
         setUpdatingId(null);
     }

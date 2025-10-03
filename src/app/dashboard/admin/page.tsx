@@ -46,6 +46,8 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, getDocs, query, where, limit } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 // Extending User type to include optional fields from Firestore
 interface User extends UserData {
@@ -78,7 +80,8 @@ export default function AdminDashboard() {
     setLoading(true);
     
     // Fetch Users
-    const unsubscribeUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+    const usersCollectionRef = collection(db, "users");
+    const unsubscribeUsers = onSnapshot(usersCollectionRef, (snapshot) => {
       const usersData: User[] = snapshot.docs.map(doc => ({
         id: doc.id,
         name: doc.data().displayName,
@@ -91,12 +94,11 @@ export default function AdminDashboard() {
       }));
       setUsers(usersData);
     }, (error) => {
-        console.error("Error al obtener usuarios:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "No se pudieron cargar los usuarios.",
+        const permissionError = new FirestorePermissionError({
+          path: usersCollectionRef.path,
+          operation: 'list',
         });
+        errorEmitter.emit('permission-error', permissionError);
     });
 
     // Fetch Verified Orders for stats
@@ -110,6 +112,12 @@ export default function AdminDashboard() {
         });
         setTotalSales(salesSum);
         setTotalTicketsSold(ticketsSum);
+    }, (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'orders',
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
     });
 
     // Fetch Recent Sales
@@ -128,6 +136,12 @@ export default function AdminDashboard() {
         // Sort in client
         salesData.sort((a, b) => b.saleDate.getTime() - a.saleDate.getTime());
         setRecentSales(salesData);
+    }, (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'orders',
+          operation: 'list',
+        });
+        errorEmitter.emit('permission-error', permissionError);
     });
 
     setLoading(false);
@@ -137,7 +151,7 @@ export default function AdminDashboard() {
       unsubscribeOrders();
       unsubscribeRecentSales();
     };
-  }, [toast]);
+  }, []);
   
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -429,5 +443,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
-    
