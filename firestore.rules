@@ -3,23 +3,36 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Rules for the 'users' collection
+
+    // Reglas para la colección 'users'
     match /users/{userId} {
-      // Any authenticated user can read user profiles.
-      allow read: if request.auth != null;
-
-      // A user can create their own profile document.
-      // The document ID must match their user ID (UID).
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      // A user can only update their own profile information.
-      allow update: if request.auth != null && request.auth.uid == userId;
-
-      // Only an admin can delete a user document.
-      // We check this by reading the user's document to see their role.
-      allow delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Un usuario solo puede leer y actualizar su propio documento.
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Cualquiera (incluso no autenticado) puede crear un documento de usuario (para el registro).
+      allow create: if request.auth != null;
     }
 
-    // You can add rules for other collections here in the future.
+    // Reglas para la colección 'tickets'
+    match /tickets/{ticketId} {
+      // El dueño del ticket o un administrador/validador puede leer y actualizar.
+      allow read, update: if request.auth != null && (request.auth.uid == resource.data.userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'validator']);
+      // Un usuario autenticado puede crear su propio ticket (durante el registro).
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Reglas para la colección 'orders'
+    match /orders/{orderId} {
+      // Un usuario autenticado puede crear una orden si el userId coincide.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // El dueño de la orden o un admin/validador pueden leerla.
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'validator']);
+      // Solo un admin/validador puede actualizar el estado de la orden.
+      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'validator'];
+    }
+
+    // Reglas para la colección de tickets de un usuario (si se anida)
+    match /users/{userId}/tickets/{ticketId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }
