@@ -81,22 +81,26 @@ export default function ValidatorDashboard() {
         batch.update(orderRef, { status: newStatus });
 
         if (newStatus === 'verified') {
-            // Find the user's ticket and enable it
+            // Find the user's ticket and enable it if it's currently disabled.
             const ticketsRef = collection(db, "tickets");
-            const q = query(ticketsRef, where("userId", "==", order.userId), where("status", "==", "disabled"));
+            const q = query(ticketsRef, where("userId", "==", order.userId));
             const ticketSnapshot = await getDocs(q);
 
             if (!ticketSnapshot.empty) {
-                // Assuming one ticket document per user for this event logic
-                 const ticketDoc = ticketSnapshot.docs[0];
-                 const ticketRef = doc(db, "tickets", ticketDoc.id);
-                 batch.update(ticketRef, { 
-                    status: "enabled",
-                    enabledAt: new Date(),
-                    orderId: order.id,
-                });
+                const ticketDoc = ticketSnapshot.docs[0];
+                // Only update the ticket if it's currently disabled.
+                if (ticketDoc.data().status === 'disabled') {
+                    const ticketRef = doc(db, "tickets", ticketDoc.id);
+                    batch.update(ticketRef, { 
+                        status: "enabled",
+                        enabledAt: new Date(),
+                        orderId: order.id,
+                    });
+                }
             } else {
-                 throw new Error(`No se encontró un ticket deshabilitado para el usuario ${order.userName}.`);
+                 // This case should ideally not happen if a ticket is created on sign-up.
+                 // We can log this for debugging but not block the order verification.
+                 console.warn(`No se encontró un ticket para el usuario ${order.userName}. La orden fue verificada de todas formas.`);
             }
         }
         
@@ -182,8 +186,8 @@ export default function ValidatorDashboard() {
                                     <Image 
                                         src={order.receiptUrl} 
                                         alt={`Comprobante de ${order.userName}`}
-                                        layout="fill"
-                                        objectFit="contain"
+                                        fill
+                                        className="object-contain"
                                     />
                                 </div>
                                 <DialogFooter className="mt-4 sm:justify-between gap-2">
