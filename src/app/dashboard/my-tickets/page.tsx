@@ -18,6 +18,7 @@ export default function MyTicketsPage() {
     useEffect(() => {
         if (user) {
             const ticketsRef = collection(db, "tickets");
+            // The query was incorrect, it should only query by userId.
             const q = query(ticketsRef, where("userId", "==", user.id));
 
             const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -25,15 +26,19 @@ export default function MyTicketsPage() {
                     // Assuming one ticket per user for this event
                     const ticketDoc = querySnapshot.docs[0];
                     setTicket(ticketDoc.data());
+                } else {
+                    setTicket(null); // Explicitly set to null if no ticket is found
                 }
                 setLoading(false);
             }, (error) => {
                 console.error("Error fetching ticket:", error);
+                // In a real app, you'd want to handle this error more gracefully
                 setLoading(false);
             });
 
             return () => unsubscribe();
         } else if (!authLoading) {
+            // If there's no user and we are not in an auth loading state, stop loading.
             setLoading(false);
         }
     }, [user, authLoading]);
@@ -90,7 +95,7 @@ export default function MyTicketsPage() {
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>Entrada Ya Utilizada</AlertTitle>
                         <AlertDescription>
-                            Este código QR ya fue escaneado en el acceso al evento el {ticket.usedAt.toDate().toLocaleString('es-ES')}.
+                            Este código QR ya fue escaneado en el acceso al evento el {ticket.usedAt?.toDate().toLocaleString('es-ES') || 'en una fecha anterior'}.
                         </AlertDescription>
                     </Alert>
                 );
@@ -133,5 +138,3 @@ export default function MyTicketsPage() {
         </div>
     );
 }
-
-    
