@@ -103,77 +103,67 @@ export default function EventPurchasePage() {
 
 
   const handleSubmit = async () => {
-    console.log("➡️ handleSubmit iniciado");
-
     if (!user) {
-      console.log("🚫 Usuario no autenticado");
-      toast({
-        variant: "destructive",
-        title: "No autenticado",
-        description: "Debes iniciar sesión para realizar una compra.",
-      });
-      router.push("/login");
-      return;
+        toast({
+            variant: "destructive",
+            title: "No autenticado",
+            description: "Debes iniciar sesión para realizar una compra.",
+        });
+        router.push("/login");
+        return;
     }
 
     if (!file) {
-      console.log("🚫 No hay archivo adjunto");
-      toast({
-        variant: "destructive",
-        title: "Falta el comprobante",
-        description: "Por favor, sube el comprobante de tu transferencia.",
-      });
-      return;
+        toast({
+            variant: "destructive",
+            title: "Falta el comprobante",
+            description: "Por favor, sube el comprobante de tu transferencia.",
+        });
+        return;
     }
 
-    console.log("🕐 Iniciando carga...");
     setIsLoading(true);
 
     try {
-      // 1. Subida de archivo
-      const fileRef = ref(storage, `receipts/${user.id}_${Date.now()}_${file.name}`);
-      console.log("📤 Subiendo archivo a Firebase Storage...");
-      await uploadBytes(fileRef, file);
-      console.log("✅ Archivo subido");
+        // Simular una demora de carga para la animación
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // 2. URL del archivo
-      const photoURL = await getDownloadURL(fileRef);
-      console.log("🌐 URL del archivo:", photoURL);
+        // En lugar de subir el archivo, usamos una URL de marcador de posición.
+        const placeholderReceiptUrl = "https://images.unsplash.com/photo-1588196749597-c070a9059ed7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxyZWNlaXB0fGVufDB8fHx8MTc1ODkyMjM2MHww&ixlib=rb-4.1.0&q=80&w=1080";
 
-      // 3. Registro en Firestore
-      console.log("📝 Enviando datos a Firestore...");
-      await addDoc(collection(db, "orders"), {
-        userId: user.id,
-        userName: user.name,
-        userEmail: user.email,
-        ticketId: ticketType.id,
-        ticketName: ticketType.name,
-        quantity,
-        totalPrice,
-        receiptUrl: photoURL,
-        status: "pending",
-        createdAt: new Date(),
-      });
-      console.log("✅ Orden creada en Firestore");
+        // Registrar la orden en Firestore
+        await addDoc(collection(db, "orders"), {
+            userId: user.id,
+            userName: user.name,
+            userEmail: user.email,
+            ticketId: ticketType.id,
+            ticketName: ticketType.name,
+            quantity,
+            totalPrice,
+            receiptUrl: placeholderReceiptUrl, // Usamos la URL falsa
+            status: "pending",
+            createdAt: new Date(),
+        });
 
-      toast({
-        title: "¡Solicitud Enviada!",
-        description: "Tu comprobante ha sido recibido. Recibirás una confirmación pronto.",
-      });
+        toast({
+            title: "¡Solicitud Enviada!",
+            description: "Tu comprobante ha sido recibido y está pendiente de validación.",
+        });
 
-      clearFile();
-      setQuantity(1);
+        clearFile();
+        setQuantity(1);
+        router.push('/dashboard/my-tickets');
+
 
     } catch (error) {
-      console.error("💥 Error en el proceso:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo enviar tu solicitud. Inténtalo de nuevo.",
-      });
+        console.error("Error en el proceso de envío:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "No se pudo enviar tu solicitud. Inténtalo de nuevo.",
+        });
     } finally {
-      console.log("🔚 Finalizando handleSubmit");
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
 
@@ -286,7 +276,7 @@ export default function EventPurchasePage() {
                 </div>
 
                 {/* Submit Button */}
-                <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSubmit} disabled={isLoading || authLoading}>
+                <Button size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-black" onClick={handleSubmit} disabled={isLoading || authLoading || !file}>
                   {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
@@ -351,3 +341,4 @@ export default function EventPurchasePage() {
   }
 }
 
+    

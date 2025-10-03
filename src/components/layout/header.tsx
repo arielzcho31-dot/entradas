@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Ticket, BarChart2, Shield, ScanLine, LogOut } from 'lucide-react';
+import { Ticket, BarChart2, Shield, ScanLine, LogOut, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
 import {
@@ -39,7 +39,7 @@ export default function Header() {
           </Link>
         </div>
         <nav className="flex flex-1 items-center space-x-4">
-          {user && user.role !== 'customer' && (
+          {user && (
              <Link
                 href="/dashboard"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
@@ -68,7 +68,17 @@ export default function Header() {
                         </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                         <DropdownMenuGroup>
+                            <Link href="/dashboard/my-tickets">
+                                 <DropdownMenuItem>
+                                   <QrCode className="mr-2 h-4 w-4" />
+                                   <span>Mis Entradas</span>
+                                 </DropdownMenuItem>
+                               </Link>
+                        </DropdownMenuGroup>
                         {user.role !== 'customer' && (
+                           <>
+                           <DropdownMenuSeparator />
                            <DropdownMenuGroup>
                              <DropdownMenuLabel>Paneles</DropdownMenuLabel>
                              {['admin'].includes(user.role) && (
@@ -96,6 +106,7 @@ export default function Header() {
                                </Link>
                              )}
                            </DropdownMenuGroup>
+                           </>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout}>
@@ -119,3 +130,5 @@ export default function Header() {
     </header>
   );
 }
+
+    
