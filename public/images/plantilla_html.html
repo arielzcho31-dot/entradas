@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Importa una fuente similar a la de tu app para consistencia */
+        @import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            font-family: 'PT Sans', sans-serif;
+        }
+        .ticket {
+            width: 350px; /* Ancho del boleto */
+            height: 550px; /* Alto del boleto */
+            background-color: #111827; /* Fondo oscuro */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 2px dashed #4b5563;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .header p {
+            margin: 4px 0 0;
+            color: #f59e0b; /* Color ámbar/dorado */
+            font-size: 18px;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .qr-container {
+            background-color: white;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .uuid {
+            margin-top: 16px;
+            font-size: 10px;
+            color: #9ca3af;
+            letter-spacing: 1px;
+            word-break: break-all;
+            text-align: center;
+        }
+        .footer {
+            padding: 16px;
+            text-align: center;
+            border-top: 2px dashed #4b5563;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h1><!-- EVENT_NAME_PLACEHOLDER --></h1>
+            <p><!-- TICKET_NAME_PLACEHOLDER --></p>
+        </div>
+        <div class="content">
+            <div class="qr-container">
+                <!-- QR_CODE_PLACEHOLDER -->
+            </div>
+            <p class="uuid"><!-- UUID_PLACEHOLDER --></p>
+        </div>
+        <div class="footer">
+            <p>Presenta este código en el acceso.</p>
+        </div>
+    </div>
+</body>
+</html>

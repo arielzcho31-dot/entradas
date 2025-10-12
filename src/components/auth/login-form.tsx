@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -16,12 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { auth, db } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import type { User } from "@/lib/placeholder-data";
+
 
 export default function LoginForm() {
   const router = useRouter();
@@ -38,46 +34,46 @@ export default function LoginForm() {
     const password = formData.get("password") as string;
 
     try {
-      // Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const authUser = userCredential.user;
-
-      // Get user data from Firestore
-      const userDocRef = doc(db, "users", authUser.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as Omit<User, 'id'>;
-        const user: User = {
-          id: authUser.uid,
-          name: authUser.displayName || userData.name,
-          email: authUser.email!,
-          role: userData.role
-        };
-
-        login(user);
+      const user = await login(email, password); // login ahora devuelve el usuario
+      if (user) {
         toast({
-          title: "Inicio de Sesión Exitoso",
-          description: `¡Bienvenido de vuelta, ${user.name}!`,
+          title: (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="font-bold">Inicio de Sesión Exitoso</span>
+            </div>
+          ) as any,
+          description: user.user_metadata.displayName ? `¡Bienvenido de vuelta, ${user.user_metadata.displayName}!` : "¡Bienvenido!",
         });
-
-        // Role-based redirection
-        if (user.role === 'admin' || user.role === 'validator' || user.role === 'organizer') {
-            router.push('/dashboard');
-        } else {
-            router.push('/');
-        }
+        
+        // Forzar un refresh para asegurar que el layout y las cookies se actualicen
+        router.refresh();
+        router.push('/'); // Redirección SIEMPRE a la página principal
       } else {
-        throw new Error("Datos de usuario no encontrados.");
+        toast({
+          variant: "destructive",
+          title: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              <span className="font-bold">Error al Iniciar Sesión</span>
+            </div>
+          ) as any,
+          description: "Correo o contraseña inválidos. Por favor, intenta de nuevo.",
+        });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error al Iniciar Sesión",
-        description: "Correo o contraseña inválidos. Por favor, intenta de nuevo.",
+        title: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              <span className="font-bold">Error al Iniciar Sesión</span>
+            </div>
+          ) as any,
+        description: "Ocurrió un error inesperado. Intenta de nuevo.",
       });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -138,3 +134,4 @@ export default function LoginForm() {
     </Card>
   );
 }
+

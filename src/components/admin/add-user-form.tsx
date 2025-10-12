@@ -1,33 +1,17 @@
 
+
 "use client";
 
 import { useState } from "react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select"
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useToast } from "../../hooks/use-toast";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "../ui/form";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../ui/select";
 import { Loader2, UserPlus } from "lucide-react";
-import { auth, db } from "@/lib/firebase"; 
-import { createUserWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { useAuth } from "@/context/auth-context";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
@@ -40,11 +24,13 @@ const formSchema = z.object({
   universidad: z.string().min(1, { message: "La universidad es requerida." }),
 });
 
-export default function AddUserForm() {
+interface AddUserFormProps {
+  onUserAdded?: () => void;
+}
+
+export default function AddUserForm({ onUserAdded }: AddUserFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { user: adminUser } = useAuth(); // Get current admin user
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,63 +47,45 @@ export default function AddUserForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    
-    // Store current user to restore session later
-    const currentAdmin = auth.currentUser;
-    if (!currentAdmin) {
-        toast({
-            variant: "destructive",
-            title: "Error de Autenticación",
-            description: "Usuario administrador no encontrado. Por favor, inicia sesión de nuevo.",
-        });
-        setIsLoading(false);
-        return;
-    }
-
     try {
-      // Create the new user
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const newUser = userCredential.user;
-
-      // Update new user's profile
-      await updateProfile(newUser, {
-          displayName: values.name,
-      });
-
-      // Save user data to Firestore
-      await setDoc(doc(db, "users", newUser.uid), {
+      const userData = {
         displayName: values.name,
-        email: newUser.email,
+        email: values.email,
+        password: values.password,
         role: values.role,
-        createdAt: new Date(),
         ci: values.ci,
         numero: values.numero,
         usuario: values.usuario,
         universidad: values.universidad,
+      };
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
       });
-      
-      toast({
-        title: "Usuario Creado",
-        description: `El usuario ${values.name} ha sido creado como ${values.role}.`,
-      });
-      
-      form.reset();
-
+      if (response.ok) {
+        toast({
+          title: "Usuario Creado",
+          description: `El usuario ${values.name} ha sido creado como ${values.role}.`,
+        });
+        form.reset();
+        if (onUserAdded) onUserAdded();
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Error al Crear Usuario",
+          description: errorData.error || "Ocurrió un error inesperado.",
+        });
+      }
     } catch (error: any) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error al Crear Usuario",
         description: error.message || "Ocurrió un error inesperado.",
       });
     } finally {
-        // Sign out the newly created user and restore the admin session.
-        // This is a workaround since creating a user signs them in automatically.
-        if (auth.currentUser?.uid !== currentAdmin.uid) {
-            await signOut(auth);
-            // This is a simplified re-authentication. A more robust solution might use custom tokens.
-            // For now, we rely on the AuthProvider's persisted state.
-        }
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -125,126 +93,126 @@ export default function AddUserForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
+          <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Nombre Completo</FormLabel>
                 <FormControl>
-                    <Input placeholder="John Doe" {...field} className="bg-white text-black" />
+                  <Input placeholder="John Doe" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                    <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
+                  <Input placeholder="usuario@ejemplo.com" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
+          <FormField
             control={form.control}
             name="ci"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>CI</FormLabel>
                 <FormControl>
-                    <Input placeholder="5.456.125" {...field} className="bg-white text-black" />
+                  <Input placeholder="5.456.125" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="numero"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Número</FormLabel>
                 <FormControl>
-                    <Input placeholder="0991 123 456" {...field} className="bg-white text-black" />
+                  <Input placeholder="0991 123 456" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
+          <FormField
             control={form.control}
             name="usuario"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Usuario</FormLabel>
                 <FormControl>
-                    <Input placeholder="usuario_unico" {...field} className="bg-white text-black" />
+                  <Input placeholder="usuario_unico" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="universidad"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Universidad</FormLabel>
                 <FormControl>
-                    <Input placeholder="Ej: UNIDA" {...field} className="bg-white text-black" />
+                  <Input placeholder="Ej: UNIDA" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
+          <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Contraseña</FormLabel>
                 <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="bg-white text-black" />
+                  <Input type="password" placeholder="••••••••" {...field} className="bg-white text-black" />
                 </FormControl>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <FormField
+          />
+          <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Rol</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
+                  <FormControl>
                     <SelectTrigger className="bg-white text-black">
-                        <SelectValue placeholder="Selecciona un rol" />
+                      <SelectValue placeholder="Selecciona un rol" />
                     </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
+                  </FormControl>
+                  <SelectContent>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="validator">Validador</SelectItem>
                     <SelectItem value="organizer">Organizador</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>
-                    </SelectContent>
+                  </SelectContent>
                 </Select>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (

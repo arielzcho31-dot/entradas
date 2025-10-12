@@ -1,4 +1,4 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      // Patrones existentes (manténlos para compatibilidad)
       {
         protocol: 'https',
         hostname: 'placehold.co',
@@ -28,12 +29,31 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-       {
+      {
         protocol: 'https',
-        hostname: 'storage.googleapis.com',
+        hostname: 'storage.googleapis.com',  // De Firebase; remuévelo después de la migración
         port: '',
         pathname: '/**',
-      }
+      },
+      // Nuevos patrones para migración (uploads locales y QR/emails)
+      {
+        protocol: 'http',  // Para desarrollo local (uploads de comprobantes)
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',  // Para testing en puerto específico (ej. 3000)
+        hostname: 'localhost',
+        port: '80',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',  // Para QR data URLs y hosts remotos (emails, producción)
+        hostname: '**',     // Wildcard para cualquier hostname seguro
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

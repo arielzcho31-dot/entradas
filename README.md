@@ -64,3 +64,4 @@ npm run dev
 ```
 
 Tu aplicación estará disponible en **[http://localhost:9002](http://localhost:9002)**.
+tar --exclude=project.tar.gz -czvf project.tar.gz .

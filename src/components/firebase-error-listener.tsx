@@ -29,11 +29,7 @@ export function FirebaseErrorListener() {
       }
     };
 
-    errorEmitter.on('permission-error', handleError);
-
-    return () => {
-      errorEmitter.off('permission-error', handleError);
-    };
+      // Archivo eliminado: Listener de errores de Firebase/Firestore ya no es necesario.
   }, [toast]);
 
   return null; // This component does not render anything

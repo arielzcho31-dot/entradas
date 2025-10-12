@@ -1,4 +1,3 @@
-
 "use client";
 
 import Image from 'next/image';
@@ -14,8 +13,37 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 export default function Home() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === 'validador') {
+        router.replace('/dashboard/validator');
+      } else if (user.role === 'organizador') {
+        router.replace('/dashboard/organizer');
+      } else if (user.role === 'admin') {
+        router.replace('/dashboard');
+      }
+      // Los clientes (u otros roles) se quedan en la página principal (sin redirección)
+    }
+  }, [user, authLoading, router]);
+
+  const shouldRedirect = !!user && ['validador', 'organizador', 'admin'].includes(user.role);
+
+  // Mostrar loader solo si está en proceso de redirección por rol especial
+  if (!authLoading && shouldRedirect) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <span className="text-sm text-muted-foreground">Redirigiendo...</span>
+      </div>
+    );
+  }
 
   const unidaImage = PlaceHolderImages.find(img => img.id === 'unida-campus');
 

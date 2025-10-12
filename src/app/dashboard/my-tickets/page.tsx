@@ -1,140 +1,306 @@
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/context/auth-context';
-import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Ticket, AlertTriangle, CheckCircle, QrCode } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Loader2, Ticket, Download, RefreshCw } from 'lucide-react';
+import QRCode from 'qrcode.react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { TicketDesign } from '@/components/tickets/ticket-design';
+
+// Define la interfaz para el Ticket
+interface MyTicket {
+  id: string;
+  ticket_name: string;
+  createdAt: string;
+  status: 'verified' | 'used';
+  order_id: string;
+  user_name?: string; // Añade user_name como opcional
+}
+
+// Define la interfaz para la Orden Agrupada
+interface GroupedOrder {
+  order_id: string;
+  ticket_name: string;
+  createdAt: string;
+  tickets: MyTicket[];
+  user_name?: string; // Añade user_name como opcional
+}
 
 export default function MyTicketsPage() {
-    const { user, loading: authLoading } = useAuth();
-    const [ticket, setTicket] = useState<DocumentData | null>(null);
-    const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const [tickets, setTickets] = useState<MyTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [pdfContent, setPdfContent] = useState<MyTicket[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { toast } = useToast();
+  const userId = user?.id;
+  const renderedTicketsCount = useRef(0);
 
-    useEffect(() => {
-        if (user) {
-            const ticketsRef = collection(db, "tickets");
-            // The query was incorrect, it should only query by userId.
-            const q = query(ticketsRef, where("userId", "==", user.id));
-
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                if (!querySnapshot.empty) {
-                    // Assuming one ticket per user for this event
-                    const ticketDoc = querySnapshot.docs[0];
-                    setTicket(ticketDoc.data());
-                } else {
-                    setTicket(null); // Explicitly set to null if no ticket is found
-                }
-                setLoading(false);
-            }, (error) => {
-                console.error("Error fetching ticket:", error);
-                // In a real app, you'd want to handle this error more gracefully
-                setLoading(false);
-            });
-
-            return () => unsubscribe();
-        } else if (!authLoading) {
-            // If there's no user and we are not in an auth loading state, stop loading.
-            setLoading(false);
-        }
-    }, [user, authLoading]);
-
-    const renderTicketStatus = () => {
-        if (!ticket) {
-            return (
-                <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>No se encontró ninguna entrada</AlertTitle>
-                    <AlertDescription>
-                        No parece que tengas una entrada asociada a tu cuenta. Si crees que esto es un error, por favor contacta a soporte.
-                    </AlertDescription>
-                </Alert>
-            );
-        }
-
-        switch (ticket.status) {
-            case 'disabled':
-                return (
-                    <Alert>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <AlertTitle>Pago Pendiente de Verificación</AlertTitle>
-                        <AlertDescription>
-                            Hemos recibido tu comprobante. Nuestro equipo lo está revisando. Tu QR aparecerá aquí una vez que el pago sea aprobado.
-                        </AlertDescription>
-                    </Alert>
-                );
-            case 'enabled':
-                return (
-                    <div className="flex flex-col items-center gap-6">
-                        <Alert variant="default" className="border-green-500 text-green-700">
-                             <CheckCircle className="h-4 w-4 text-green-500" />
-                            <AlertTitle>¡Entrada Habilitada!</AlertTitle>
-                            <AlertDescription>
-                                Presenta este código QR en el acceso del evento. ¡Que lo disfrutes!
-                            </AlertDescription>
-                        </Alert>
-                        <div className="bg-white p-4 rounded-lg shadow-inner">
-                            <QRCodeSVG 
-                                value={ticket.ticketCode} 
-                                size={256} 
-                                includeMargin={true}
-                            />
-                        </div>
-                        <p className="text-sm text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
-                            {ticket.ticketCode}
-                        </p>
-                    </div>
-                );
-            case 'used':
-                return (
-                     <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Entrada Ya Utilizada</AlertTitle>
-                        <AlertDescription>
-                            Este código QR ya fue escaneado en el acceso al evento el {ticket.usedAt?.toDate().toLocaleString('es-ES') || 'en una fecha anterior'}.
-                        </AlertDescription>
-                    </Alert>
-                );
-            default:
-                return <p>Estado desconocido. Contacta a soporte.</p>;
-        }
-    };
-
-    if (loading || authLoading) {
-        return (
-            <div className="flex justify-center items-center py-20">
-                <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            </div>
-        );
+  const fetchTickets = useCallback(async () => {
+    if (!userId) {
+      setTickets([]);
+      setLoading(false);
+      return;
     }
-     if (!user) {
-        return (
-             <div className="flex justify-center items-center py-20">
-                <p>Debes iniciar sesión para ver tus entradas.</p>
-            </div>
-        )
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('id, ticket_name, createdAt, status, order_id, user_name')
+        .eq('user_id', userId)
+        .order('createdAt', { ascending: false });
+      if (error) throw error;
+      setTickets(data || []);
+    } catch (error: any) {
+      setErrorMsg(error.message || 'No se pudieron cargar tus entradas.');
+      setTickets([]);
+      console.error("Error fetching tickets:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      fetchTickets();
+    }
+  }, [authLoading, fetchTickets]);
+
+  const groupedOrders = useMemo(() => {
+    const groups: { [key: string]: GroupedOrder } = {};
+    tickets.forEach(ticket => {
+      if (!groups[ticket.order_id]) {
+        groups[ticket.order_id] = {
+          order_id: ticket.order_id,
+          ticket_name: ticket.ticket_name,
+          createdAt: ticket.createdAt,
+          user_name: ticket.user_name, // Asigna el nombre de usuario
+          tickets: [],
+        };
+      }
+      groups[ticket.order_id].tickets.push(ticket);
+    });
+    return Object.values(groups);
+  }, [tickets]);
+
+  const generatePdf = async (orderId: string) => {
+    const input = document.getElementById('pdf-render-area');
+    if (!input) {
+      toast({ variant: "destructive", title: "Error", description: "No se encontró el contenido para generar el PDF." });
+      return;
     }
 
+    try {
+      const ticketElements = Array.from(input.children);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      for (let i = 0; i < ticketElements.length; i++) {
+        if (i > 0) pdf.addPage();
+        const ticketCanvas = await html2canvas(ticketElements[i] as HTMLElement, { 
+          scale: 2, 
+          backgroundColor: null,
+          useCORS: true
+        });
+        const imgData = ticketCanvas.toDataURL('image/png');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+      }
+
+      pdf.save(`entradas-${orderId}.pdf`);
+    } catch (error) {
+      console.error("Error al generar PDF:", error);
+      toast({ variant: "destructive", title: "Error", description: "No se pudo generar el PDF." });
+    } finally {
+      setDownloading(null);
+      setPdfContent([]);
+    }
+  };
+
+  const handleDownloadPdf = (ticketsToDownload: MyTicket[], downloadId: string) => {
+    setDownloading(downloadId);
+    renderedTicketsCount.current = 0;
+    setPdfContent(ticketsToDownload);
+  };
+
+  const handleTicketRendered = (fileName: string, totalTickets: number) => {
+    renderedTicketsCount.current += 1;
+    if (renderedTicketsCount.current === totalTickets) {
+      generatePdf(fileName);
+    }
+  };
+
+  const getOrderStatus = (order: GroupedOrder) => {
+    const allUsed = order.tickets.every(t => t.status === 'used');
+    return allUsed
+      ? { text: 'Utilizada', variant: 'destructive' as const }
+      : { text: 'Válida', variant: 'default' as const };
+  };
+
+  if (authLoading || loading) {
     return (
-        <div className="container mx-auto max-w-2xl py-12">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Ticket className="h-6 w-6 text-primary"/>
-                        Mi Entrada para UnidaFest 2025
-                    </CardTitle>
-                    <CardDescription>
-                        Aquí puedes ver el estado de tu entrada y tu código QR para el acceso.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center p-8 min-h-[400px]">
-                    {renderTicketStatus()}
-                </CardContent>
-            </Card>
-        </div>
+      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
+  }
+  if (errorMsg) {
+    return (
+      <div className="text-center py-10 text-destructive">
+        {errorMsg}
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-10 space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Mis Entradas</h1>
+          <p className="text-muted-foreground">
+            Aquí están tus entradas agrupadas por compra. Haz clic en una para ver los códigos QR.
+          </p>
+        </div>
+        <Button onClick={fetchTickets} variant="outline" size="sm" disabled={loading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refrescar
+        </Button>
+      </div>
+
+      {tickets.length === 0 && !loading ? (
+        <Card className="text-center py-12">
+          <CardHeader>
+            <Ticket className="mx-auto h-12 w-12 text-muted-foreground" />
+            <CardTitle className="mt-4">No tienes entradas</CardTitle>
+            <CardDescription>
+              Cuando compres entradas para un evento, aparecerán aquí.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : user?.role === 'customer' ? (
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          {groupedOrders.map((order) => {
+            const orderStatus = getOrderStatus(order);
+            return (
+              <AccordionItem value={order.order_id} key={order.order_id} className="border rounded-lg">
+                <div className="flex items-center p-4">
+                  <AccordionTrigger className="flex-1 text-left p-0 hover:no-underline">
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        {order.ticket_name}
+                        <span className="text-muted-foreground font-normal ml-2">(x{order.tickets.length})</span>
+                        <Badge variant={orderStatus.variant} className="ml-3">{orderStatus.text}</Badge>
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Compra del: {new Date(order.createdAt).toLocaleDateString('es-ES')}
+                      </p>
+                    </div>
+                  </AccordionTrigger>
+                  <Button onClick={() => handleDownloadPdf(order.tickets, order.order_id)} disabled={!!downloading} size="sm" className="ml-4">
+                    {downloading === order.order_id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    PDF
+                  </Button>
+                </div>
+                <AccordionContent>
+                  {/* Ya no se necesita el contenedor oculto aquí */}
+                  {/* Vista previa visible para el usuario */}
+                  <div className="p-4 pt-0">
+                    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                      {order.tickets.map((ticket) => (
+                        <div key={ticket.id} className="flex flex-col items-center gap-4 p-4 border rounded-lg">
+                          <div className="bg-white p-2 rounded-lg">
+                            <QRCode value={ticket.id} size={128} />
+                          </div>
+                          <div className="text-center">
+                            <Badge variant={ticket.status === 'used' ? 'destructive' : 'default'}>
+                              {ticket.status === 'used' ? 'Utilizada' : 'Válida'}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground break-all mt-2">
+                              ID: {ticket.id}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+      ) : (
+        // Vista para roles que no son 'customer'
+        <div>
+          <Button onClick={() => handleDownloadPdf(tickets, 'todas-mis-entradas')} disabled={!!downloading} size="lg" className="w-full md:w-auto mb-8">
+            {downloading === 'todas-mis-entradas' ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            Descargar Todas Mis Entradas (PDF)
+          </Button>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {tickets.map((ticket) => (
+              <div key={ticket.id} className="flex flex-col items-center gap-4 p-4 border rounded-lg">
+                <div className="bg-white p-2 rounded-lg">
+                  <QRCode value={ticket.id} size={128} />
+                </div>
+                <div className="text-center">
+                  <p className="font-semibold">{ticket.ticket_name}</p>
+                  <Badge variant={ticket.status === 'used' ? 'destructive' : 'default'} className="mt-1">
+                    {ticket.status === 'used' ? 'Utilizada' : 'Válida'}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground break-all mt-2">
+                    ID: {ticket.id}
+                  </p>
+                </div>
+                <Button onClick={() => handleDownloadPdf([ticket], ticket.id)} disabled={!!downloading} size="sm" variant="outline" className="w-full mt-2">
+                  {downloading === ticket.id ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Descargar
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contenedor invisible para renderizar el PDF */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
+        <div id="pdf-render-area">
+          {pdfContent.map((ticket) => (
+            <TicketDesign
+              key={ticket.id}
+              ticketId={ticket.id}
+              eventName={
+                <>
+                  <span style={{ color: '#ec4899' }}>UNIDA</span>
+                  <span style={{ color: '#ffffff' }}>FEST 2025</span>
+                </>
+              }
+              ticketName={ticket.ticket_name}
+              userName={ticket.user_name}
+              onRendered={() => handleTicketRendered(downloading || 'entradas', pdfContent.length)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

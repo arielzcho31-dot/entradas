@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Importa una fuente moderna */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .ticket {
+            width: 350px;
+            height: 600px;
+            background-color: #080e3f; /* Fondo blanco */
+            color: #1f2937; /* Texto oscuro */
+            display: flex;
+            flex-direction: column;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+        }
+        .header {
+            padding: 24px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        /*.header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #1e0dff; /* Color primario 
+        }*/
+        .header p {
+            margin: 4px 0 0;
+            color: #4b5563;
+            font-size: 16px;
+        }
+        .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .qr-container {
+            background-color: rgb(8, 5, 56);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+        .uuid {
+            margin-top: 16px;
+            font-size: 10px;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+            text-align: center;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            background-color: #04111f; /* Fondo del pie de página ligeramente gris */
+            border-top: 1px solid #060f20;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+            color: #4b5563;
+        }
+        a1 {
+      font-style: normal; font-weight: bold; color: rgb(217, 133, 183); text-align: center; line-height: 1; text-decoration: none; letter-spacing: normal; text-transform: none; pointer-events: auto;
+        }
+        a2 {
+      font-style: normal; font-weight: bold; color: silver; text-align: center; line-height: 1; text-decoration: none; letter-spacing: normal; text-transform: none; pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket">
+        <div class="header">
+            <h1><a1 id="a1">UNIDA</a1><a2>FEST</a2></h1>
+            <h1><a2>2025</a2></h1>
+            <h3>Presenta este código en el acceso del evento.</h3>
+        </div>
+        <div class="content">
+            <div class="qr-container">
+                <!-- QR_CODE_PLACEHOLDER -->
+            </div>
+            <p class="uuid"><!-- UUID_PLACEHOLDER --></p>
+        </div>
+        <div class="footer">
+            <p>Presenta este código en el acceso del evento.</p>
+        </div>
+    </div>
+</body>
+</html>

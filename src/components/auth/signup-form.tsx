@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -9,19 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { auth, db } from "@/lib/firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc, writeBatch } from "firebase/firestore";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import type { User } from "@/lib/placeholder-data";
-import { errorEmitter } from "@/lib/error-emitter";
-import { FirestorePermissionError } from "@/lib/errors";
 
 export default function SignUpForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { register, login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,87 +30,77 @@ export default function SignUpForm() {
     const userRole = "customer";
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const authUser = userCredential.user;
-
-      await updateProfile(authUser, {
+      // Llama al endpoint de registro vía contexto
+      const userData = {
         displayName: fullName,
-      });
-
-      const batch = writeBatch(db);
-
-      // 1. Create user document
-      const userRef = doc(db, "users", authUser.uid);
-      const userDataForDb = {
-        displayName: fullName,
-        email: authUser.email,
-        role: userRole,
-        createdAt: new Date(),
-        ci: ci,
-        numero: formData.get("numero"),
-        usuario: formData.get("usuario"),
-        universidad: formData.get("universidad"),
-      };
-      batch.set(userRef, userDataForDb);
-
-      // 2. Create associated ticket document
-      const ticketRef = doc(collection(db, "tickets"));
-      const ticketCode = `TICKET-${authUser.uid.substring(0, 8).toUpperCase()}`;
-      batch.set(ticketRef, {
-        userId: authUser.uid,
-        userCi: ci,
-        userName: fullName,
-        ticketCode: ticketCode,
-        status: "disabled", // disabled, enabled, used
-        createdAt: new Date(),
-        orderId: null,
-        enabledAt: null,
-        usedAt: null,
-      });
-
-      await batch.commit().catch((error) => {
-        // This is a simplified catch for the batch write.
-        // A more granular approach would be needed to know which write failed.
-        const permissionError = new FirestorePermissionError({
-          path: `batch write for user ${authUser.uid}`,
-          operation: 'write',
-          requestResourceData: { userDataForDb, ticketData: '...' }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        // Re-throw to be caught by the outer catch block
-        throw error;
-      });
-
-      const user: User = {
-        id: authUser.uid,
-        name: fullName,
-        email: authUser.email!,
+        email,
+        password,
+        ci,
+        numero: formData.get("numero") as string,
+        usuario: formData.get("usuario") as string,
+        universidad: formData.get("universidad") as string,
         role: userRole,
       };
-      
-      login(user);
-
-      toast({
-        title: "¡Bienvenido!",
-        description: `Tu cuenta ha sido creada con éxito, ${user.name}.`,
-      });
-      router.push("/");
-
-    } catch (error: any) {
-      let description = "Ocurrió un error inesperado.";
-      if (error.code === 'auth/email-already-in-use') {
-        description = "Este correo electrónico ya está registrado. Por favor, intenta iniciar sesión.";
-      } else if (error.name !== 'FirestorePermissionError') { // Don't show generic toast for our custom error
-        description = error.message;
-      }
-      
-      if (error.name !== 'FirestorePermissionError') {
+      const success = await register(userData);
+      if (success) {
+        // Login automático tras registro exitoso
+        const loggedInUser = await login(email, password);
+        if (loggedInUser) {
+          toast({
+            title: (
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="font-bold">¡Bienvenido!</span>
+              </div>
+            ) as any,
+            description: `Tu cuenta ha sido creada con éxito, ${fullName}.`,
+          });
+          router.refresh();
+          router.push("/");
+        } else {
+          toast({
+            variant: "destructive",
+            title: (
+              <div className="flex items-center gap-2">
+                <XCircle className="h-5 w-5" />
+                <span className="font-bold">Error al iniciar sesión</span>
+              </div>
+            ) as any,
+            description: "No se pudo iniciar sesión automáticamente. Intenta iniciar sesión manualmente.",
+          });
+          router.push("/login");
+        }
+      } else {
         toast({
           variant: "destructive",
-          title: "Error en el Registro",
-          description: description,
+          title: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              <span className="font-bold">Error en el Registro</span>
+            </div>
+          ) as any,
+          description: "No se pudo crear la cuenta. Intenta de nuevo.",
         });
       }
+    } catch (error: any) {
+      let description = "Ocurrió un error inesperado.";
+      // Simplifica el manejo de errores
+      if (error.message.includes('El email ya está registrado')) {
+        description = "Este correo electrónico ya está registrado. Por favor, intenta iniciar sesión.";
+      } else {
+        description = error.message || description;
+      }
+      
+      toast({
+        variant: "destructive",
+        title: (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              <span className="font-bold">Error en el Registro</span>
+            </div>
+          ) as any,
+        description: description,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -140,11 +123,11 @@ export default function SignUpForm() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="ci">CI</Label>
-                <Input id="ci" name="ci" placeholder="5.456.125" required className="bg-white text-black" />
+                <Input id="ci" name="ci" type="number" inputMode="numeric" pattern="[0-9]*" min="1" step="1" placeholder="5.456.125" required className="bg-white text-black" onInput={e => { e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') }} />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="numero">Número</Label>
-                <Input id="numero" name="numero" placeholder="0991 123 456" required className="bg-white text-black" />
+                <Input id="numero" name="numero" type="number" inputMode="numeric" pattern="[0-9]*" min="1" step="1" placeholder="0991123456" required className="bg-white text-black" onInput={e => { e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') }} />
             </div>
         </div>
         <div className="grid gap-2">
@@ -200,3 +183,4 @@ export default function SignUpForm() {
     </form>
   );
 }
+
