@@ -1,58 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Inicializa Supabase con la clave de servicio para tener permisos de administrador
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { query } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
     // Contar total de usuarios
-    const { count: totalUsers, error: usersError } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true });
+    const usersResult = await query('SELECT COUNT(*) as count FROM users');
+    const totalUsers = parseInt(usersResult.rows[0].count);
 
     // Contar órdenes pendientes
-    const { count: pendingOrders, error: ordersError } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending');
+    const pendingResult = await query(
+      "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'"
+    );
+    const pendingOrders = parseInt(pendingResult.rows[0].count);
 
-    // Contar tickets vendidos (verificados, provenientes de ordenes aceptadas)
-    const { count: soldTickets, error: soldTicketsError } = await supabase
-      .from('tickets')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'verified')
-      .not('order_id', 'is', null);
+    // Contar tickets vendidos (con order_id)
+    const soldResult = await query(
+      "SELECT COUNT(*) as count FROM tickets WHERE order_id IS NOT NULL"
+    );
+    const soldTickets = parseInt(soldResult.rows[0].count);
 
-    // Contar tickets generados manualmente (verificados, sin order_id)
-    const { count: manualTickets, error: manualTicketsError } = await supabase
-      .from('tickets')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'verified')
-      .is('order_id', null);
+    // Contar tickets generados manualmente (sin order_id)
+    const manualResult = await query(
+      "SELECT COUNT(*) as count FROM tickets WHERE order_id IS NULL"
+    );
+    const manualTickets = parseInt(manualResult.rows[0].count);
 
-    // Sumar ingresos totales de órdenes verificadas y usadas
-    const { data: revenueData, error: revenueError } = await supabase
-      .from('orders')
-      .select('totalPrice')
-      .in('status', ['verified', 'used']);
+    // Sumar ingresos totales de órdenes APROBADAS (este era el bug)
+    const revenueResult = await query(
+      "SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE status = 'approved'"
+    );
+    const totalRevenue = parseFloat(revenueResult.rows[0].total);
 
-    if (usersError || ordersError || soldTicketsError || manualTicketsError || revenueError) {
-      console.error({ usersError, ordersError, soldTicketsError, manualTicketsError, revenueError });
-      throw new Error('Error al obtener las estadísticas de la base de datos.');
-    }
-
-    const totalRevenue = revenueData?.reduce((acc, order) => acc + order.totalPrice, 0) ?? 0;
+    // Contar órdenes aprobadas
+    const approvedResult = await query(
+      "SELECT COUNT(*) as count FROM orders WHERE status = 'approved'"
+    );
+    const approvedOrders = parseInt(approvedResult.rows[0].count);
 
     return NextResponse.json({
-      totalUsers: totalUsers ?? 0,
-      pendingOrders: pendingOrders ?? 0,
-      soldTickets: soldTickets ?? 0,
-      manualTickets: manualTickets ?? 0,
-      totalRevenue: totalRevenue,
+      totalUsers,
+      pendingOrders,
+      approvedOrders,
+      soldTickets,
+      manualTickets,
+      totalRevenue,
     });
 
   } catch (error: any) {

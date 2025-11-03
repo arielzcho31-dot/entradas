@@ -1,67 +1,108 @@
-# TicketWise - Proyecto de Venta de Entradas
+# 🎫 TicketWise - Plataforma de Gestión de Eventos
 
-Este es un proyecto de aplicación web desarrollado en Firebase Studio, construido con Next.js, React, ShadCN UI, Tailwind CSS y Firebase. La aplicación gestiona la venta de entradas para un evento, incluyendo autenticación de usuarios, roles, verificación de pagos y escaneo de códigos QR.
+Aplicación web moderna para la venta y gestión de entradas de múltiples eventos, construida con Next.js 15, React, PostgreSQL, ShadCN UI y Tailwind CSS. Incluye autenticación de usuarios, roles diferenciados, verificación de pagos y escaneo de códigos QR.
+
+## ✨ Características
+
+- 🎪 **Multi-evento:** Gestiona múltiples eventos simultáneamente
+- 🎟️ **Tipos de entrada:** Define diferentes tipos (General, VIP, Estudiante, etc.)
+- 👥 **Sistema de roles:** Admin, Organizador, Validador, Usuario
+- 💳 **Verificación de pagos:** Aprobación manual de comprobantes
+- 📱 **Escaneo QR:** Validación de entradas con cámara
+- 📊 **Dashboard:** Estadísticas en tiempo real por evento
+- 🔒 **Seguridad:** Autenticación con JWT y bcrypt
 
 ---
 
-## 🚀 Cómo Empezar (Instrucciones de Instalación Local)
-
-Sigue estos pasos para ejecutar el proyecto en tu propia computadora.
+## 🚀 Instalación Rápida
 
 ### Requisitos Previos
 
-- [Node.js](httpss://nodejs.org/en/) (versión 18 o superior)
-- [npm](httpss://www.npmjs.com/) (generalmente se instala con Node.js)
-- Una cuenta de [Firebase](httpss://firebase.google.com/)
+- [Node.js](https://nodejs.org/en/) v18 o superior
+- [PostgreSQL](https://www.postgresql.org/download/) v14 o superior
+- [npm](https://www.npmjs.com/) (incluido con Node.js)
 
-### 1. Descomprime el Proyecto
-
-Descomprime el archivo `.zip` que descargaste en una carpeta de tu elección.
-
-### 2. Instala las Dependencias
-
-Abre una terminal o línea de comandos, navega hasta la carpeta donde descomprimiste el proyecto y ejecuta el siguiente comando. Esto descargará e instalará todas las librerías necesarias.
+### 1. Clonar e Instalar
 
 ```bash
+# Clonar el repositorio
+git clone <tu-repo>
+cd web_modificable
+
+# Instalar dependencias
 npm install
 ```
 
-### 3. Configura tu Proyecto de Firebase
-
-Para que la aplicación se conecte a tu propia base de datos y almacenamiento, necesitas configurar un proyecto en Firebase.
-
-1.  **Crea un proyecto en Firebase:** Ve a la [consola de Firebase](httpss://console.firebase.google.com/), haz clic en "Añadir proyecto" y sigue los pasos.
-2.  **Activa los servicios:**
-    *   En el menú de la izquierda, ve a **Authentication** -> **Sign-in method** y activa el proveedor **Email/Password**.
-    *   Ve a **Firestore Database**, haz clic en "Crear base de datos" y créala en **modo de producción**.
-    *   Ve a **Storage** y haz clic en "Comenzar".
-3.  **Obtén tus credenciales:**
-    *   En la configuración de tu proyecto (haciendo clic en el ícono de engranaje), ve a "Configuración del proyecto".
-    *   En la sección "Tus apps", haz clic en el ícono `</>` para registrar una nueva aplicación web.
-    *   Firebase te proporcionará un objeto de configuración (`firebaseConfig`). Cópialo.
-4.  **Actualiza el archivo de configuración:**
-    *   Abre el archivo `src/lib/firebase.ts` en tu editor de código.
-    *   Reemplaza el objeto `firebaseConfig` existente con el que acabas de copiar de tu proyecto de Firebase.
-
-### 4. Configura las Reglas de CORS para Storage
-
-Para que los comprobantes de pago se puedan visualizar en la aplicación, debes aplicar las reglas de CORS.
-
-1.  Necesitarás la [CLI de Google Cloud](httpss://cloud.google.com/sdk/docs/install).
-2.  Ejecuta el siguiente comando en tu terminal, reemplazando `[YOUR_BUCKET_NAME]` por el nombre de tu bucket de Storage (que suele ser `tu-proyecto-id.appspot.com`):
+### 2. Configurar Base de Datos PostgreSQL
 
 ```bash
-gcloud storage buckets update gs://[YOUR_BUCKET_NAME] --cors-file=cors.json
+# Crear base de datos (desde psql)
+createdb ticketwase2
+
+# Aplicar esquema
+psql -U postgres -d ticketwase2 -f docs/apply-schema.sql
 ```
-> **Nota:** El archivo `cors.json` ya está incluido en el proyecto. Solo necesitas ejecutar el comando.
 
-### 5. Ejecuta la Aplicación
+O desde pgAdmin: ejecuta el archivo `docs/schema-postgresql.sql`
 
-¡Ya está todo listo! Ejecuta el siguiente comando en tu terminal para iniciar el servidor de desarrollo:
+### 3. Configurar Variables de Entorno
+
+Crea un archivo `.env.local` en la raíz:
+
+```env
+# PostgreSQL
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=ticketwase2
+DATABASE_USER=postgres
+DATABASE_PASSWORD=tu_password
+
+# JWT
+JWT_SECRET=tu_secreto_super_seguro_cambiar_en_produccion
+
+# App
+NODE_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:9002
+```
+
+Ver `.env.example` para todas las variables disponibles.
+
+### 4. Ejecutar la Aplicación
 
 ```bash
 npm run dev
 ```
 
-Tu aplicación estará disponible en **[http://localhost:9002](http://localhost:9002)**.
+Abre [http://localhost:9002](http://localhost:9002) en tu navegador.
+
+### 5. Credenciales de Prueba
+
+Usuario admin por defecto:
+- **Email:** admin@ticketwise.com
+- **Password:** Admin123!
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+web_modificable/
+├── src/
+│   ├── app/              # Next.js App Router
+│   │   ├── api/          # Endpoints API
+│   │   ├── dashboard/    # Dashboards por rol
+│   │   ├── events/       # Páginas de eventos
+│   │   └── ...
+│   ├── components/       # Componentes React
+│   ├── lib/              # Utilidades y DB
+│   │   └── db.ts         # Cliente PostgreSQL
+│   ├── types/            # TypeScript types
+│   └── context/          # React Context
+├── docs/                 # Documentación
+│   ├── bdd.txt           # Esquema de BD
+│   ├── schema-postgresql.sql
+│   ├── apply-schema.sql
+│   └── POSTGRESQL_MIGRATION.md
+└── public/               # Assets estáticos
+```
 tar --exclude=project.tar.gz -czvf project.tar.gz .

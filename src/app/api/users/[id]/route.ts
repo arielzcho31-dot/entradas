@@ -1,87 +1,142 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import bcrypt from 'bcrypt';
-import config from '@/config';
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/db'
+import bcrypt from 'bcrypt'
+import { normalizeRole } from '@/lib/role-utils'
 
-const supabase = createClient(
-  config.supabase.url!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Función para ACTUALIZAR un usuario (PUT)
-export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+// GET /api/users/[id] - Obtener un usuario por ID
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await context.params; // Await params (Next.js requirement)
-    if (!id) {
-      return NextResponse.json({ error: 'User ID is missing' }, { status: 400 });
+    const { id } = await context.params
+
+    const result = await query(
+      'SELECT id, email, role, display_name, ci, usuario, numero, universidad, created_at FROM users WHERE id = $1',
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
     }
 
-    const userData = await request.json();
-    const { email, password, ...rest } = userData;
-    const updatableData: any = { ...rest };
-
-    if (password && password.length > 0) {
-      updatableData.password = await bcrypt.hash(password, 10);
-    }
-
-    // (Opcional) Actualizar email en auth si se envía uno diferente
-    if (email) {
-      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(id, { email });
-      if (updateAuthError) {
-        return NextResponse.json({ error: 'No se pudo actualizar el email en Auth.' }, { status: 400 });
-      }
-      updatableData.email = email;
-    }
-    // Sincroniza el rol en user_metadata de Auth si se envía uno diferente
-    if (userData.role) {
-      const { error: updateRoleError } = await supabase.auth.admin.updateUserById(id, {
-        user_metadata: { role: userData.role }
-      });
-      if (updateRoleError) {
-        return NextResponse.json({ error: 'No se pudo actualizar el rol en Auth.' }, { status: 400 });
-      }
-    }
-
-    const { data, error } = await supabase
-      .from('users')
-      .update(updatableData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('Update user error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(result.rows[0])
+  } catch (error: unknown) {
+    console.error('Error al obtener usuario:', error)
+    return NextResponse.json(
+      { error: 'Error al obtener el usuario' },
+      { status: 500 }
+    )
   }
 }
 
-// Función para ELIMINAR un usuario (DELETE)
-export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+// PUT /api/users/[id] - Actualizar un usuario
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await context.params; // Await params (Next.js requirement)
-    if (!id) {
-      return NextResponse.json({ error: 'User ID is missing' }, { status: 400 });
+    const { id } = await context.params
+    const body = await request.json()
+
+    // Normalizar el rol si existe en el body
+    if (body.role) {
+      body.role = normalizeRole(body.role)
     }
 
-    // Eliminar primero de la tabla personalizada
-    const { error: tableError } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
+    // Construir dinámicamente la consulta UPDATE
+    const updates: string[] = []
+    const values: any[] = []
+    let paramIndex = 1
 
-    if (tableError) throw tableError;
+    // Campos permitidos para actualizar
+    const allowedFields = ['email', 'role', 'display_name', 'ci', 'usuario', 'numero', 'universidad', 'password']
 
-    // Eliminar del Auth (si aún existe)
-    const { error: authDeleteError } = await supabase.auth.admin.deleteUser(id);
-    if (authDeleteError && authDeleteError.message !== 'User not found') {
-      return NextResponse.json({ error: 'Usuario borrado de la tabla, pero no del Auth. Revisar manualmente.' }, { status: 500 });
+    for (const [key, value] of Object.entries(body)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        if (key === 'password') {
+          // Hash de la nueva contraseña
+          const hashedPassword = await bcrypt.hash(value as string, 10)
+          updates.push(`${key} = $${paramIndex}`)
+          values.push(hashedPassword)
+        } else {
+          updates.push(`${key} = $${paramIndex}`)
+          values.push(value)
+        }
+        paramIndex++
+      }
     }
 
-    return NextResponse.json({ message: 'Usuario eliminado exitosamente' });
-  } catch (error: any) {
-    console.error('Delete user error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (updates.length === 0) {
+      return NextResponse.json(
+        { error: 'No hay campos válidos para actualizar' },
+        { status: 400 }
+      )
+    }
+
+    // Agregar el ID al final de los valores
+    values.push(id)
+
+    const result = await query(
+      `UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex} RETURNING id, email, role, display_name, ci, usuario, numero, universidad, created_at, updated_at`,
+      values
+    )
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(result.rows[0])
+  } catch (error: unknown) {
+    console.error('Error al actualizar usuario:', error)
+    
+    // Manejar error de email duplicado
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+      return NextResponse.json(
+        { error: 'El email o CI ya está registrado' },
+        { status: 409 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Error al actualizar el usuario' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/users/[id] - Eliminar un usuario
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params
+
+    const result = await query(
+      'DELETE FROM users WHERE id = $1',
+      [id]
+    )
+
+    if (result.rowCount === 0) {
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Usuario eliminado correctamente' })
+  } catch (error: unknown) {
+    console.error('Error al eliminar usuario:', error)
+    return NextResponse.json(
+      { error: 'Error al eliminar el usuario' },
+      { status: 500 }
+    )
   }
 }

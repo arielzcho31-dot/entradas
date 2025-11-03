@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Aplicación Next.js en modo desarrollo
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ticketwise-dev
+    ports:
+      - "9002:9002"  # Puerto de desarrollo configurado en package.json
+    environment:
+      - NODE_ENV=development
+      - PORT=9002
+      - HOSTNAME=0.0.0.0
+    env_file:
+      - .env.local
+    volumes:
+      # Montaje del código fuente para hot reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      # Montaje para uploads
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    networks:
+      - ticketwise-dev-network
+    command: npm run dev
+
+networks:
+  ticketwise-dev-network:
+    driver: bridge

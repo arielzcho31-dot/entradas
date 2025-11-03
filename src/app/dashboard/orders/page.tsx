@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Loader2, CheckCircle, XCircle, RefreshCw, Ticket } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 
@@ -59,20 +58,22 @@ export default function ValidatorOrdersPage() {
   const handleOrderAction = async (order: Order, newStatus: 'approved' | 'rejected') => {
     setActionLoading(order.id);
     try {
-      const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', order.id);
-      if (error) throw error;
-
       if (newStatus === 'approved') {
-        const ticketsToCreate = Array.from({ length: order.quantity }, () => ({
-          order_id: order.id,
-          user_id: order.userId,
-          user_name: order.userName,
-          ticket_name: order.ticketName,
-          status: 'verified',
-        }));
-        const { error: ticketError } = await supabase.from('tickets').insert(ticketsToCreate);
-        if (ticketError) throw ticketError;
+        const ticketsResponse = await fetch(`/api/orders/${order.id}/tickets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: order.quantity }),
+        });
+        if (!ticketsResponse.ok) throw new Error('Error al generar tickets');
       }
+
+      const updateResponse = await fetch(`/api/orders/${order.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!updateResponse.ok) throw new Error('Error al actualizar orden');
+
       toast({ title: `Orden ${newStatus === 'approved' ? 'Aprobada' : 'Rechazada'}`, description: "El estado de la orden ha sido actualizado." });
       fetchOrders();
     } catch (error: any) {

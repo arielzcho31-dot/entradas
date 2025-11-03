@@ -33,7 +33,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'customer' | 'validator' | 'admin' | 'organizer';
+  role: 'user' | 'validator' | 'admin' | 'organizer';
 };
 
 export type Sale = {

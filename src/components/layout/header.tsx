@@ -50,15 +50,15 @@ export default function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata.photoURL || ""} alt={user.user_metadata.displayName || "Usuario"} />
-                    <AvatarFallback>{getInitials(user.user_metadata.displayName)}</AvatarFallback>
+                    <AvatarImage src="" alt={user.user_metadata?.displayName || "Usuario"} />
+                    <AvatarFallback>{getInitials(user.user_metadata?.displayName)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.user_metadata.displayName}</p>
+                    <p className="text-sm font-medium leading-none">{user.user_metadata?.displayName || "Usuario"}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
@@ -73,17 +73,12 @@ export default function Header() {
                   <span>Mis Entradas</span>
                 </DropdownMenuItem>
 
-                {user.role === 'customer' ? (
-                  <DropdownMenuItem onClick={() => router.push('/events/1')}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    <span>Comprar Entradas</span>
-                  </DropdownMenuItem>
-                ) : user.role === 'organizador' ? (
+                { user.role === 'organizer' ? (
                   <DropdownMenuItem onClick={() => router.push('/dashboard/organizer')}>
                     <QrCode className="mr-2 h-4 w-4" />
                     <span>Escanear Entradas</span>
                   </DropdownMenuItem>
-                ) : user.role === 'validador' ? (
+                ) : user.role === 'validator' ? (
                   <DropdownMenuItem onClick={() => router.push('/dashboard/orders')}>
                     <FileCheck className="mr-2 h-4 w-4" />
                     <span>Aprobar Órdenes</span>

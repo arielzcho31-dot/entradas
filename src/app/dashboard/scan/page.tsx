@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ interface ScanResult {
 export default function ScanDashboard() {
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const [scannerKey, setScannerKey] = useState(0);
   const [manualCode, setManualCode] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -35,12 +35,8 @@ export default function ScanDashboard() {
     setLoading(true);
     setShowScanner(false);
     try {
-      const { data: ticketData, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('id', ticketId)
-        .single();
-      if (error || !ticketData) {
+      const response = await fetch(`/api/tickets?id=${ticketId}`);
+      if (!response.ok) {
         setScanResult({
           status: 'error',
           title: 'Entrada Inválida',
@@ -48,31 +44,39 @@ export default function ScanDashboard() {
         });
         return;
       }
-      if (ticketData.status === 'verified') {
-        await supabase.from('tickets').update({ status: 'used', used_at: new Date().toISOString() }).eq('id', ticketId);
-        setScanResult({
-          status: 'success',
-          title: 'Acceso Permitido',
-          message: '¡Bienvenido/a al evento!',
-          userName: ticketData.userName || ticketData.user_name,
-          ticketStatus: 'Habilitado',
-        });
-      } else if (ticketData.status === 'used') {
+      const ticketData = await response.json();
+      
+      // Verificar si el ticket ya fue usado
+      if (ticketData.status === 'used') {
         setScanResult({
           status: 'warning',
           title: 'Entrada Ya Utilizada',
-          message: `Esta entrada fue escaneada el `,
-          userName: ticketData.userName || ticketData.user_name,
+          message: `Esta entrada fue escaneada el ${new Date(ticketData.used_at).toLocaleString('es-AR')}`,
+          userName: ticketData.user_name,
           ticketStatus: 'Ya utilizado',
           used_at: ticketData.used_at,
         });
-      } else {
-        setScanResult({
-          status: 'error',
-          title: 'Entrada Inválida',
-          message: 'El estado de la entrada no es válido para acceso.',
-        });
+        return;
       }
+
+      // Ticket válido, marcar como usado
+      const updateResponse = await fetch(`/api/tickets?id=${ticketId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Error al marcar el ticket como usado');
+      }
+
+      setScanResult({
+        status: 'success',
+        title: 'Acceso Permitido',
+        message: '¡Bienvenido/a al evento!',
+        userName: ticketData.user_name,
+        ticketStatus: 'Habilitado',
+      });
+
     } catch (err) {
       console.error("Error verifying ticket:", err);
       toast({
@@ -100,7 +104,7 @@ export default function ScanDashboard() {
     }
   };
 
-  if (!user || (user.role !== 'organizador' && user.role !== 'admin' && user.role !== 'validador')) {
+  if (!user || (user.role !== 'organizer' && user.role !== 'admin' && user.role !== 'validator')) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] text-destructive">
         No tienes permisos para ver esta sección.
@@ -122,6 +126,7 @@ export default function ScanDashboard() {
             <CardContent className="flex flex-col items-center gap-4 pt-6">
               {showScanner ? (
                 <Scanner
+  key={scannerKey}
   onScan={(result) => {
     if (result && Array.isArray(result) && result.length > 0 && result[0].rawValue) {
       handleVerification(result[0].rawValue);
@@ -140,7 +145,7 @@ export default function ScanDashboard() {
 />
 
               ) : (
-                <Button onClick={() => setShowScanner(true)} variant="secondary" className="w-full"><CameraOff className="mr-2 h-4 w-4" />Activar Cámara</Button>
+                <Button onClick={() => { setShowScanner(true); setScannerKey(prev => prev + 1); }} variant="secondary" className="w-full"><CameraOff className="mr-2 h-4 w-4" />Activar Cámara</Button>
               )}
               {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
             </CardContent>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateEntradaStatus, deleteEntrada } from '@/lib/db-functions';
+import { query } from '@/lib/db';
 
-// PUT - Actualizar estado de entrada
+// PUT - Actualizar estado de entrada (ticket)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -16,16 +16,19 @@ export async function PUT(
       );
     }
 
-    const updatedEntrada = await updateEntradaStatus(params.id, estado);
+    const result = await query(
+      'UPDATE tickets SET status = $1 WHERE id = $2 RETURNING *',
+      [estado, params.id]
+    );
     
-    if (!updatedEntrada) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: 'Entrada no encontrada' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(updatedEntrada);
+    return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error('Error updating entrada:', error);
     return NextResponse.json(
@@ -35,15 +38,18 @@ export async function PUT(
   }
 }
 
-// DELETE - Eliminar entrada
+// DELETE - Eliminar entrada (ticket)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const deletedEntrada = await deleteEntrada(params.id);
+    const result = await query(
+      'DELETE FROM tickets WHERE id = $1 RETURNING *',
+      [params.id]
+    );
     
-    if (!deletedEntrada) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: 'Entrada no encontrada' },
         { status: 404 }

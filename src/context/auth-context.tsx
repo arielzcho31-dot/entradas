@@ -7,9 +7,9 @@ import {
   useState,
   useCallback,
 } from "react";
-import { supabase } from "@/lib/supabaseClient"; // Usamos el nuevo cliente
-import { AuthUser } from "@/types"; // Esta línea ahora funcionará
+import { AuthUser } from "@/types";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -18,103 +18,114 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (userData: any) => Promise<boolean>;
 }
-import { useToast } from "@/hooks/use-toast"; // 👈 importamos el toast
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Clave para localStorage
+const USER_STORAGE_KEY = 'ticketwise_user';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  //const { toast } = useToast();
-  const { toast } = useToast(); // 👈 inicializamos el hook
+  const { toast } = useToast();
 
-  const getSession = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session) {
-      const userWithRole = {
-        ...session.user,
-        role: session.user.user_metadata.role || "customer",
-      };
-      setUser(userWithRole);
-    } else {
-      setUser(null);
+  // Cargar usuario desde localStorage al montar
+  const loadUserFromStorage = useCallback(() => {
+    try {
+      const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+      localStorage.removeItem(USER_STORAGE_KEY);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          const userWithRole = {
-            ...session.user,
-            role: session.user.user_metadata.role || "customer",
-          };
-          setUser(userWithRole);
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [getSession]);
+    loadUserFromStorage();
+  }, [loadUserFromStorage]);
 
   const login = async (
     email: string,
     password: string
   ): Promise<AuthUser | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (error) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({
+          title: "Error al iniciar sesión",
+          description: data.error || "Usuario o contraseña incorrectos.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      if (!data.user) {
+        toast({
+          title: "Usuario no encontrado",
+          description: "Verifica tus datos o regístrate.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       toast({
-        title: "Error al iniciar sesión",
-        description: "Usuario o contraseña incorrectos.",
+        title: "Bienvenido 👋",
+        description: data.user.email,
+      });
+
+      const userWithRole: AuthUser = {
+        id: data.user.id,
+        email: data.user.email,
+        role: data.user.role || "user",
+        user_metadata: {
+          displayName: data.user.display_name,
+          role: data.user.role,
+        },
+      };
+
+      // Guardar en localStorage
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userWithRole));
+      setUser(userWithRole);
+      
+      router.push("/dashboard");
+      return userWithRole;
+
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Error",
+        description: "Error al conectar con el servidor.",
         variant: "destructive",
       });
       return null;
     }
-
-    if (!data.user) {
-      toast({
-        title: "Usuario no encontrado",
-        description: "Verifica tus datos o regístrate.",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    toast({
-      title: "Bienvenido 👋",
-      description: data.user.email,
-    });
-
-    const userWithRole = {
-      ...data.user,
-      role: data.user.user_metadata?.role || "customer",
-    };
-
-    setUser(userWithRole);
-    router.push("/dashboard"); // 👈 ejemplo de redirección post-login
-    return userWithRole;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    // Limpiar localStorage
+    localStorage.removeItem(USER_STORAGE_KEY);
     setUser(null);
+    
+    toast({
+      title: "Sesión cerrada",
+      description: "Has cerrado sesión exitosamente.",
+    });
+    
     router.push("/");
-    router.refresh(); // Asegura que el estado del servidor se limpie
+    router.refresh();
   };
 
   const register = async (userData: any): Promise<boolean> => {
@@ -124,12 +135,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
+
+      const data = await response.json();
+
       if (response.ok) {
+        toast({
+          title: "Registro exitoso",
+          description: "Tu cuenta ha sido creada. Ahora puedes iniciar sesión.",
+        });
         return true;
       } else {
+        toast({
+          title: "Error al registrarse",
+          description: data.error || "No se pudo crear la cuenta.",
+          variant: "destructive",
+        });
         return false;
       }
     } catch (error) {
+      console.error('Register error:', error);
+      toast({
+        title: "Error",
+        description: "Error al conectar con el servidor.",
+        variant: "destructive",
+      });
       return false;
     }
   };

@@ -1,0 +1,116 @@
+-- ====================================
+-- TICKETWISE - ESQUEMA POSTGRESQL MULTI-EVENTO
+-- Actualizado: 2025-11-01
+-- ====================================
+
+-- ====================================
+-- TABLA: events
+-- Gestiona múltiples eventos en la plataforma
+-- ====================================
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  event_date TIMESTAMPTZ,
+  location TEXT,
+  image_url TEXT,
+  status TEXT DEFAULT 'active',
+  created_by UUID,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ====================================
+-- TABLA: ticket_types
+-- Define los tipos de entrada por evento
+-- ====================================
+CREATE TABLE ticket_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  price INTEGER NOT NULL,
+  quantity_available INTEGER,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ====================================
+-- TABLA: users
+-- ====================================
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  display_name TEXT,
+  ci TEXT,
+  usuario TEXT,
+  numero TEXT,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'user',
+  universidad TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ====================================
+-- TABLA: orders
+-- Ahora incluye event_id y ticket_type_id
+-- ====================================
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  ticket_type_id UUID REFERENCES ticket_types(id),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  user_name TEXT,
+  user_email TEXT,
+  ticket_name TEXT,
+  quantity INTEGER NOT NULL,
+  total_price INTEGER NOT NULL,
+  receipt_url TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  used_at TIMESTAMPTZ
+);
+
+-- ====================================
+-- TABLA: tickets
+-- Ahora incluye event_id
+-- ====================================
+CREATE TABLE tickets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id),
+  user_name TEXT,
+  ticket_type_name TEXT,
+  status TEXT DEFAULT 'verified',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  used_at TIMESTAMPTZ,
+  validated_by UUID REFERENCES users(id)
+);
+
+-- ====================================
+-- TABLA: event_organizers
+-- Asigna organizadores y validadores a eventos
+-- ====================================
+CREATE TABLE event_organizers (
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'organizer',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (event_id, user_id)
+);
+
+-- ====================================
+-- ÍNDICES para optimización
+-- ====================================
+CREATE INDEX idx_orders_event ON orders(event_id);
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_tickets_event ON tickets(event_id);
+CREATE INDEX idx_tickets_order ON tickets(order_id);
+CREATE INDEX idx_tickets_user ON tickets(user_id);
+CREATE INDEX idx_tickets_status ON tickets(status);
+CREATE INDEX idx_ticket_types_event ON ticket_types(event_id);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_events_status ON events(status);

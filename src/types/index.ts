@@ -1,6 +1,15 @@
-import { User } from '@supabase/supabase-js';
-
-// Extendemos el tipo 'User' de Supabase para incluir nuestra propiedad 'role'.
-export interface AuthUser extends User {
+// Tipo de usuario autenticado con PostgreSQL
+export interface AuthUser {
+  id: string;
+  email: string;
   role: string;
+  display_name?: string;
+  ci?: string;
+  usuario?: string;
+  numero?: string;
+  universidad?: string;
+  user_metadata?: {
+    displayName?: string;
+    role?: string;
+  };
 }

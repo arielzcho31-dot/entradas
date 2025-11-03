@@ -25,9 +25,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!authLoading && user) {
       // Redirección según el rol
-      if (user.role === 'validador') {
+      if (user.role === 'validator') {
         router.replace('/dashboard/orders');
-      } else if (user.role === 'organizador') {
+      } else if (user.role === 'organizer') {
         router.replace('/dashboard/organizer');
       } else if (user.role === 'admin') {
         // El admin se queda aquí, así que carga los datos

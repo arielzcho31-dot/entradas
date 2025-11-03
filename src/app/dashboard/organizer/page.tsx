@@ -1,186 +1,307 @@
-"use client";
+'use client'
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { useToast } from '@/hooks/use-toast';
-import { Scanner } from '@yudiel/react-qr-scanner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CameraOff, QrCode, Type, Nfc, CheckCircle, XCircle, AlertTriangle, TicketCheck } from 'lucide-react';
-import { ClientDate } from '@/components/client-date';
-import { RecentSales } from '@/components/dashboard/recent-sales';
-import { useAuth } from '@/context/auth-context';
-import Link from 'next/link';
+import { useEffect, useState } from 'react'
+import { useAuth } from '@/context/auth-context'
+import { redirect, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Calendar,
+  MapPin,
+  Users,
+  DollarSign,
+  Plus,
+  Edit,
+  Eye,
+  TrendingUp,
+  Ticket,
+  RefreshCw,
+} from 'lucide-react'
+import { RevenueStatsCard } from '@/components/dashboard/revenue-stats-card'
 
-// Define la interfaz para el resultado del escaneo
-interface ScanResult {
-  status: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message: string;
-  userName?: string;
-  ticketStatus?: string;
-  used_at?: string;
+interface Event {
+  id: string
+  name: string
+  description: string | null
+  event_date: string
+  location: string
+  image_url: string | null
+  status: 'active' | 'ended' | 'cancelled' | 'hidden'
+  created_at: string
+  total_sales?: number
+  total_revenue?: number
+  ticket_types_count?: number
+}
+
+const statusColors = {
+  active: 'bg-green-500',
+  ended: 'bg-blue-500',
+  cancelled: 'bg-red-500',
+  hidden: 'bg-gray-500',
+}
+
+const statusLabels = {
+  active: 'Activo',
+  ended: 'Finalizado',
+  cancelled: 'Cancelado',
+  hidden: 'Oculto',
 }
 
 export default function OrganizerDashboard() {
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [showScanner, setShowScanner] = useState(false);
-  const [manualCode, setManualCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth()
+  const router = useRouter()
+  const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Lógica de verificación de la entrada
-  const handleVerification = async (ticketId: string | null) => {
-    if (!ticketId) return;
-    setLoading(true);
-    setShowScanner(false);
+  if (!user || user.role !== 'organizer') {
+    redirect('/dashboard')
+  }
 
+  useEffect(() => {
+    loadMyEvents()
+  }, [user])
+
+  const loadMyEvents = async () => {
     try {
-      // Ahora consultamos la tabla 'tickets'
-      const { data: ticketData, error } = await supabase
-        .from('tickets')
-        .select('*')
-        .eq('id', ticketId) // Supabase client es inteligente y debería manejar esto.
-        .single();
+      setLoading(true)
+      // Cargar eventos creados por este organizador O donde está asignado
+      // Pasamos userId y userRole para que el API filtre por empresa
+      const [createdResponse, assignedResponse] = await Promise.all([
+        fetch(`/api/events?createdBy=${user?.id}&userId=${user?.id}&userRole=${user?.role}`),
+        fetch(`/api/events?userId=${user?.id}&userRole=${user?.role}`)
+      ]);
 
-      if (error || !ticketData) {
-        setScanResult({
-          status: 'error',
-          title: 'Entrada Inválida',
-          message: 'Este código de entrada no se encontró en la base de datos.',
-        });
-        return;
-      }
+      if (!createdResponse.ok) throw new Error('Error al cargar eventos')
 
-      if (ticketData.status === 'verified') {
-        // Actualizamos el ticket individual, no la orden
-        await supabase.from('tickets').update({ status: 'used', used_at: new Date().toISOString() }).eq('id', ticketId);
-        setScanResult({
-          status: 'success',
-          title: 'Acceso Permitido',
-          message: '¡Bienvenido/a al evento!',
-          userName: ticketData.userName,
-          ticketStatus: 'Habilitado',
-        });
-      } else if (ticketData.status === 'used') {
-        setScanResult({
-          status: 'warning',
-          title: 'Entrada Ya Utilizada',
-          message: `Esta entrada fue escaneada el `, // Se quita la fecha de aquí
-          userName: ticketData.user_name, // Corregido de userName a user_name
-          ticketStatus: 'Ya utilizado',
-          used_at: ticketData.used_at, // Añadir used_at al resultado
-        });
-      }
-    } catch (err) {
-      console.error("Error verifying ticket:", err);
-      toast({ 
-        variant: "destructive", 
-        title: (
-          <div className="flex items-center gap-2">
-            <XCircle className="h-5 w-5" />
-            <span className="font-bold">Error de Verificación</span>
-          </div>
-        ) as any,
-        description: "Ocurrió un error al verificar la entrada."
-      });
+      const createdData = await createdResponse.json()
+      const allEvents = assignedResponse.ok ? await assignedResponse.json() : []
+      
+      // Filtrar eventos donde está asignado como organizador
+      const assignedEvents = await Promise.all(
+        allEvents.map(async (event: any) => {
+          try {
+            const orgRes = await fetch(`/api/events/${event.id}/organizers`)
+            if (orgRes.ok) {
+              const organizers = await orgRes.json()
+              if (organizers.some((org: any) => org.user_id === user?.id)) {
+                return event
+              }
+            }
+          } catch (err) {
+            console.error('Error checking organizer:', err)
+          }
+          return null
+        })
+      )
+
+      // Combinar eventos creados y asignados (sin duplicados)
+      const allMyEvents = [
+        ...createdData,
+        ...assignedEvents.filter((e: any) => e && !createdData.find((c: any) => c.id === e.id))
+      ]
+      const data = allMyEvents
+
+      // Cargar stats para cada evento
+      const eventsWithStats = await Promise.all(
+        data.map(async (event: Event) => {
+          try {
+            const statsRes = await fetch(`/api/events/${event.id}/stats`)
+            if (statsRes.ok) {
+              const stats = await statsRes.json()
+              return { ...event, ...stats }
+            }
+          } catch (err) {
+            console.error('Error loading stats:', err)
+          }
+          return event
+        })
+      )
+
+      setEvents(eventsWithStats)
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al cargar tus eventos')
     } finally {
-      setLoading(false);
-      setManualCode('');
+      setLoading(false)
     }
-  };
+  }
 
-  const getResultIcon = (status: ScanResult['status']) => {
-    switch (status) {
-      case 'success': return <CheckCircle className="h-16 w-16 text-green-500" />;
-      case 'error': return <XCircle className="h-16 w-16 text-destructive" />;
-      case 'warning': return <AlertTriangle className="h-16 w-16 text-yellow-500" />;
-      default: return <TicketCheck className="h-16 w-16 text-muted-foreground" />;
-    }
-  };
+  const totalSales = events.reduce((sum, e) => sum + (e.total_sales || 0), 0)
+  const totalRevenue = events.reduce((sum, e) => sum + (e.total_revenue || 0), 0)
+  const activeEvents = events.filter((e) => e.status === 'active').length
 
-  if (!user || (user.role !== 'organizador' && user.role !== 'admin')) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)] text-destructive">
-        No tienes permisos para ver esta sección.
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">Cargando tus eventos...</div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="container mx-auto py-10 flex flex-col items-center gap-8">
-      <h1 className="text-3xl font-bold tracking-tight">Escanear Entradas</h1>
-      <p className="text-muted-foreground">Escanea o carga manualmente las entradas de los asistentes.</p>
-      <Tabs defaultValue="qr" className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="qr"><QrCode className="mr-2 h-4 w-4" />Escanear QR</TabsTrigger>
-          <TabsTrigger value="manual"><Type className="mr-2 h-4 w-4" />Carga Manual</TabsTrigger>
-        </TabsList>
-        <TabsContent value="qr">
-          <Card>
-            <CardContent className="flex flex-col items-center gap-4 pt-6">
-              {showScanner ? (
-                <Scanner
-                  onScan={(result) => {
-                    if (result && Array.isArray(result) && result.length > 0 && result[0].rawValue) {
-                      handleVerification(result[0].rawValue);
-                    }
-                  }}
-                  onError={(error) => {
-                    console.error(error);
-                    toast({
-                      variant: "destructive",
-                      title: "Error de cámara",
-                      description: "No se pudo acceder a la cámara."
-                    });
-                  }}
-                  constraints={{ facingMode: 'environment' }}
-                  classNames={{ container: "w-full max-w-xs rounded border" }}
-                />
-              ) : (
-                <Button onClick={() => setShowScanner(true)} variant="secondary" className="w-full"><CameraOff className="mr-2 h-4 w-4" />Activar Cámara</Button>
-              )}
-              {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="manual">
-          <Card>
-            <CardContent className="flex flex-col items-center gap-4 pt-6">
-              <Input
-                placeholder="UUID de la entrada"
-                value={manualCode}
-                onChange={e => setManualCode(e.target.value)}
-                className="w-full"
-                disabled={loading}
-              />
-              <Button onClick={() => handleVerification(manualCode)} disabled={loading || !manualCode} className="w-full">
-                <Nfc className="mr-2 h-4 w-4" />Verificar Manualmente
-              </Button>
-              {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      {scanResult && (
-        <Alert className="w-full max-w-md mt-4" variant={scanResult.status === 'success' ? 'default' : scanResult.status === 'warning' ? 'default' : 'destructive'}>
-          <AlertTitle className="flex items-center gap-2">
-            {getResultIcon(scanResult.status)}
-            {scanResult.title}
-          </AlertTitle>
-          <AlertDescription>
-            {scanResult.message}
-            {scanResult.userName && <div className="mt-2 font-semibold">Usuario: {scanResult.userName}</div>}
-            {scanResult.ticketStatus && <div className="mt-1">Estado: {scanResult.ticketStatus}</div>}
-            {scanResult.used_at && <div className="mt-1 text-xs text-muted-foreground">Usado el: {new Date(scanResult.used_at).toLocaleString('es-ES')}</div>}
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Mis Eventos</h1>
+          <p className="text-gray-600 mt-1">Gestiona tus eventos y ventas</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={loadMyEvents} variant="outline" className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Actualizar
+          </Button>
+          <Link href="/dashboard/organizer/events/new">
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Crear Evento
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Estadísticas de Ingresos con Auto-Refresh */}
+      <RevenueStatsCard 
+        userId={user?.id} 
+        eventId="all" 
+        autoRefresh={true}
+        refreshInterval={30000}
+      />
+
+      {/* Eventos Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tus Eventos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {events.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">Aún no has creado ningún evento</p>
+              <Link href="/dashboard/organizer/events/new">
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Crear Mi Primer Evento
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Evento</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Ubicación</TableHead>
+                  <TableHead>Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {events.map((event) => (
+                  <TableRow 
+                    key={event.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => router.push(`/dashboard/organizer/events/${event.id}`)}
+                  >
+                    <TableCell>
+                      <div className="font-medium">{event.name}</div>
+                      {event.ticket_types_count && (
+                        <div className="text-sm text-gray-500">
+                          {event.ticket_types_count} tipos de entrada
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        {new Date(event.event_date).toLocaleDateString('es-PY', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        {event.location}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={statusColors[event.status]}>
+                        {statusLabels[event.status]}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              Ver Estadísticas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Analiza tus ventas y rendimiento
+            </p>
+            <Link href="/dashboard/stats">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Reportes</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="w-5 h-5 text-green-600" />
+              Mis Compradores
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Lista de personas que compraron
+            </p>
+            <Link href="/dashboard/organizer/orders">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Órdenes</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Ticket className="w-5 h-5 text-green-600" />
+              Escanear Entradas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-600 mb-4">
+              Validar tickets en el evento
+            </p>
+            <Link href="/dashboard/scan">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ir a Scanner</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
-  );
+  )
 }

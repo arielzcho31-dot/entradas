@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Hopper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <div class="logo">Event Hopper</div>
+      <nav class="nav-links">
+        <a href="#">Home</a>
+        <a href="#">My Tickets</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="#" class="login">Log In</a>
+        <a href="#" class="signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-overlay">
+      <h1>Discover Your Next Experience</h1>
+      <p>From concerts to conferences, find and book tickets to the best events in town.</p>
+      <div class="search-box">
+        <input type="text" placeholder="Search events by name, location..." />
+      </div>
+    </div>
+  </section>
+
+  <!-- Upcoming Events -->
+  <section class="events container">
+    <h2>Upcoming Events</h2>
+    <div class="filters">
+      <button class="active">All</button>
+      <button>Music</button>
+      <button>Sports</button>
+      <button>Arts</button>
+      <button>Tech</button>
+      <button>Food</button>
+    </div>
+
+    <div class="event-grid">
+      <!-- Event Card -->
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Tech Innovators Conference</h3>
+          <p>📅 September 20, 2024<br>📍 Convention Center, San Francisco, CA</p>
+          <div class="card-footer">
+            <span class="tag">Tech</span>
+            <span class="price">$499</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Summer Music Fest</h3>
+          <p>📅 August 15, 2024<br>📍 Sunset Park, New York, NY</p>
+          <div class="card-footer">
+            <span class="tag">Music</span>
+            <span class="price">$75</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Artisan Food Fair</h3>
+          <p>📅 July 28, 2024<br>📍 Market Square, Chicago, IL</p>
+          <div class="card-footer">
+            <span class="tag">Food</span>
+            <span class="price">$15</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Championship Basketball Finals</h3>
+          <p>📅 August 5, 2024<br>📍 United Center, Chicago, IL</p>
+          <div class="card-footer">
+            <span class="tag">Sports</span>
+            <span class="price">$150</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1549887534-1541e9326642?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Modern Art Exhibition</h3>
+          <p>📅 September 1, 2024<br>📍 Art Institute, Chicago, IL</p>
+          <div class="card-footer">
+            <span class="tag">Arts</span>
+            <span class="price">$25</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Indie Film Festival</h3>
+          <p>📅 October 10, 2024<br>📍 Indie Cinema, Austin, TX</p>
+          <div class="card-footer">
+            <span class="tag">Arts</span>
+            <span class="price">$20</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Rock the Park</h3>
+          <p>📅 July 20, 2024<br>📍 Millennium Park, Chicago, IL</p>
+          <div class="card-footer">
+            <span class="tag">Music</span>
+            <span class="price">Free</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1520975936578-4e1dc1ad3b63?auto=format&fit=crop&w=800&q=80" alt="">
+        <div class="card-body">
+          <h3>Marathon 2024</h3>
+          <p>📅 October 13, 2024<br>📍 Grant Park, Chicago, IL</p>
+          <div class="card-footer">
+            <span class="tag">Sports</span>
+            <span class="price">Free</span>
+            <button>Get Tickets</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="logo">Event Hopper</div>
+      <div class="links">
+        <a href="#">About Us</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

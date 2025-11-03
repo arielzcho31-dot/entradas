@@ -1,5 +1,6 @@
 {
     "chat.checkpoints.showFileChanges": true,
     "chat.edits2.enabled": true,
-    "chat.emptyState.history.enabled": true
+    "chat.emptyState.history.enabled": true,
+    "git.ignoreLimitWarning": true
 }

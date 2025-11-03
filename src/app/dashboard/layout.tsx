@@ -3,20 +3,21 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, ShieldCheck, Users, QrCode, Ticket, User as UserIcon, LogOut, TicketPlus, FileCheck } from 'lucide-react';
+import { Home, ShieldCheck, Users, QrCode, Ticket, User as UserIcon, LogOut, TicketPlus, FileCheck, Calendar } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useEffect } from 'react';
 import { event } from '@/lib/placeholder-data'; // Importar datos del evento
 
 const sidebarNavItems = [
 	{ title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin'] },
-	{ title: 'Dashboard', href: '/dashboard/validator', icon: Home, roles: ['validador'] },
-	{ title: 'Dashboard', href:  '/dashboard/scan',/*'/dashboard/organizer',*/ icon: Home, roles: ['organizador'] },
-	{ title: 'Mi Perfil', href: '/dashboard/profile', icon: UserIcon, roles: ['customer', 'admin'] },
-	{ title: 'Mis Entradas', href: '/dashboard/my-tickets', icon: Ticket, roles: ['customer', 'admin'] },
-	{ title: 'Comprar Entradas', href: `/events/${event.id}`, icon: Ticket, roles: ['customer'] },
+	{ title: 'Dashboard', href: '/dashboard/validator', icon: Home, roles: ['validator'] },
+	{ title: 'Dashboard', href:  '/dashboard/organizer',/*'/dashboard/organizer',*/ icon: Home, roles: ['organizer'] },
+	{ title: 'Mi Perfil', href: '/dashboard/profile', icon: UserIcon, roles: ['user', 'admin'] },
+	{ title: 'Mis Entradas', href: '/dashboard/my-tickets', icon: Ticket, roles: ['user',/* 'admin'*/] },
+	//{ title: 'Comprar Entradas', href: `/events/${event.id}`, icon: Ticket, roles: ['user'] },
+	{ title: 'Gestión de Eventos', href: '/dashboard/admin/events', icon: Calendar, roles: ['admin'] },
 	{ title: 'Aprobar Órdenes', href: '/dashboard/validator', icon: FileCheck, roles: ['admin'] },
-	{ title: 'Escanear Entradas', href: '/dashboard/scan', icon: QrCode, roles: ['admin', 'validador'] },
+	{ title: 'Escanear Entradas', href: '/dashboard/scan', icon: QrCode, roles: ['admin', 'validator'] },
 	{ title: 'Usuarios', href: '/dashboard/users', icon: Users, roles: ['admin'] },
 	{ title: 'Generar Entradas', href: '/dashboard/ticket-generator', icon: TicketPlus, roles: ['admin'] },
 	{ title: 'Entradas Generadas', href: '/dashboard/generated-tickets', icon: Ticket, roles: ['admin'] },
@@ -30,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 	useEffect(() => {
 		// Redirección para clientes
 		if (
-			user?.role === 'customer' &&
+			user?.role === 'user' &&
 			pathname.startsWith('/dashboard') &&
 			!['/dashboard/profile', '/dashboard/my-tickets'].includes(pathname)
 		) {
@@ -38,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 		}
 		// Redirección para validadores (permitir /dashboard/validator y /dashboard/scan)
 		if (
-			user?.role === 'validador' &&
+			user?.role === 'validator' &&
 			pathname.startsWith('/dashboard') &&
 			!['/dashboard/validator', '/dashboard/scan'].includes(pathname)
 		) {

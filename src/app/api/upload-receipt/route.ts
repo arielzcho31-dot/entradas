@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Inicializa un cliente de Supabase con la clave de servicio para tener permisos de administrador.
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,30 +12,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan el archivo o el ID de usuario.' }, { status: 400 });
     }
 
-    // Define la ruta del archivo en el bucket
+    // Define la ruta del archivo dentro de public
     const fileExt = file.name.split('.').pop();
-    const filePath = `${userId}-${Date.now()}.${fileExt}`;
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'receipts');
+    const filePath = path.join(uploadsDir, fileName);
 
-    // Sube el archivo al bucket 'receipts'
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from('receipts')
-      .upload(filePath, file);
+    // Crear directorio si no existe
+    await mkdir(uploadsDir, { recursive: true });
 
-    if (uploadError) {
-      throw new Error(`Error al subir el archivo: ${uploadError.message}`);
-    }
+    // Convertir el archivo a Buffer y guardarlo
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    await writeFile(filePath, buffer);
 
-    // Obtiene la URL pública del archivo recién subido
-    const { data: publicUrlData } = supabaseAdmin.storage
-      .from('receipts')
-      .getPublicUrl(filePath);
+    // URL pública del archivo - usar API route para servir en producción
+    const receiptUrl = `/api/receipts/${fileName}`;
 
-    if (!publicUrlData?.publicUrl) {
-      throw new Error('No se pudo obtener la URL pública del archivo.');
-    }
-
-    // Devuelve la URL pública para que el cliente la use
-    return NextResponse.json({ receiptUrl: publicUrlData.publicUrl });
+    return NextResponse.json({ receiptUrl });
 
   } catch (error: any) {
     console.error('Error en la API de subida:', error);

@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { query } from '@/lib/db';
 import bcrypt from 'bcrypt';
 
-// Inicializa Supabase aquí
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+interface User {
+  id: string;
+  email: string;
+  password: string;
+  display_name?: string;
+  role: string;
+  ci?: string;
+  usuario?: string;
+  numero?: string;
+  universidad?: string;
+  created_at: Date;
+  updated_at: Date;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,18 +28,19 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Busca el usuario por email
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const result = await query<User>(
+      'SELECT * FROM users WHERE email = $1 LIMIT 1',
+      [email]
+    );
 
-    if (error || !user) {
+    if (result.rowCount === 0) {
       return NextResponse.json(
         { error: 'Credenciales inválidas' },
         { status: 401 }
       );
     }
+
+    const user = result.rows[0];
 
     // 2. Compara la contraseña enviada con la hasheada en la BD
     const passwordMatch = await bcrypt.compare(password, user.password);

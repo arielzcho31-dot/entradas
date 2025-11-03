@@ -2,12 +2,16 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // Para Hostinger Shared Hosting (descomenta la siguiente línea)
+  // output: 'export',
+  
+  // Para VPS/Cloud con Docker (mantener esta línea)
+  output: 'standalone',
+  
+  // Optimizaciones básicas (sin experimentales para desarrollo)
+  poweredByHeader: false,
+  
+  // Optimización de imágenes simplificada
   images: {
     remotePatterns: [
       // Patrones existentes (manténlos para compatibilidad)
@@ -55,6 +59,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 

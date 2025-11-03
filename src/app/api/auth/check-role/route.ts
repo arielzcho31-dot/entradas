@@ -1,31 +1,36 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/db'
 
-export async function GET() {
-  // Usamos createRouteHandlerClient que es la forma moderna y correcta
-  // de manejar la autenticación en el backend de Next.js.
-  const supabase = createRouteHandlerClient({ cookies });
-  
+export async function GET(request: NextRequest) {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    // Obtener el userId desde los headers o query params
+    const userId = request.headers.get('x-user-id') || request.nextUrl.searchParams.get('userId')
 
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!userId) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Obtenemos el rol de los metadatos del usuario en la sesión
-    const userRole = session.user.user_metadata.role || 'customer';
-    const userId = session.user.id;
+    // Consultar el rol del usuario en PostgreSQL
+    const result = await query(
+      'SELECT id, role FROM users WHERE id = $1',
+      [userId]
+    )
+
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    const user = result.rows[0]
 
     return NextResponse.json({ 
       message: 'User role checked successfully',
-      userId: userId,
-      role: userRole 
-    });
+      userId: user.id,
+      role: user.role 
+    })
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Error checking user role:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 

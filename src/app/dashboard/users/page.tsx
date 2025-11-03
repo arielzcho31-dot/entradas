@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,11 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge"; // Importa el componente Badge
+import { Badge } from "@/components/ui/badge";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit, Trash2, UserPlus, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getRoleLabel, normalizeRole } from '@/lib/role-utils';
 
 // Define la interfaz para el usuario
 interface User {
@@ -32,17 +32,16 @@ interface User {
 const RoleBadge = ({ role }: { role: string | null | undefined }) => {
   const roleStyles: { [key: string]: string } = {
     admin: 'bg-red-600 hover:bg-red-700 text-white border-transparent',
-    customer: 'bg-green-600 hover:bg-green-700 text-white border-transparent',
-    validador: 'bg-blue-800 hover:bg-blue-900 text-white border-transparent',
-    organizador: 'bg-sky-500 hover:bg-sky-600 text-white border-transparent',
-    'sin-rol': 'bg-gray-500 text-white border-transparent'
+    user: 'bg-green-600 hover:bg-green-700 text-white border-transparent',
+    validator: 'bg-blue-800 hover:bg-blue-900 text-white border-transparent',
+    organizer: 'bg-sky-500 hover:bg-sky-600 text-white border-transparent',
   };
-  const safe = role && role.trim() ? role : 'sin-rol';
-  const label = safe === 'sin-rol'
-    ? 'Sin rol'
-    : safe.charAt(0).toUpperCase() + safe.slice(1);
+  
+  const normalizedRole = normalizeRole(role);
+  const label = getRoleLabel(role);
+  
   return (
-    <Badge className={roleStyles[safe] || 'bg-gray-500 text-white'}>
+    <Badge className={roleStyles[normalizedRole] || 'bg-gray-500 text-white'}>
       {label}
     </Badge>
   );
@@ -60,16 +59,17 @@ export default function AdminUsersPage() {
   // Función para obtener todos los usuarios
   const fetchUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, displayName, email, role, createdAt, ci, numero, usuario, universidad')
-      .order('createdAt', { ascending: false });
-
-    if (error) {
+    try {
+      const response = await fetch('/api/users');
+      if (!response.ok) throw new Error('Failed to fetch users');
+      const data = await response.json();
+      // normaliza roles nulos a 'user'
+      setUsers((data || []).map((u: any) => ({ 
+        ...u, 
+        role: u.role ?? 'user'
+      })));
+    } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los usuarios." });
-    } else {
-      // normaliza roles nulos a 'customer'
-      setUsers((data || []).map(u => ({ ...u, role: u.role ?? 'customer' })));
     }
     setLoading(false);
   };
@@ -83,13 +83,60 @@ export default function AdminUsersPage() {
     event.preventDefault();
     setCreatingUser(true);
     const formData = new FormData(event.currentTarget);
+    
+    const ci = formData.get('ci') as string;
+    const numero = formData.get('numero') as string;
+    const usuario = formData.get('usuario') as string;
+    const email = formData.get('email') as string;
+
+    // Validaciones del lado del cliente
+    if (!ci || !numero || !email) {
+      toast({ 
+        variant: "destructive", 
+        title: "Campos obligatorios", 
+        description: "CI, Celular y Correo son obligatorios." 
+      });
+      setCreatingUser(false);
+      return;
+    }
+
+    if (!/^\d+$/.test(ci)) {
+      toast({ 
+        variant: "destructive", 
+        title: "CI inválido", 
+        description: "La cédula debe contener solo números." 
+      });
+      setCreatingUser(false);
+      return;
+    }
+
+    if (!/^\d+$/.test(numero)) {
+      toast({ 
+        variant: "destructive", 
+        title: "Celular inválido", 
+        description: "El celular debe contener solo números." 
+      });
+      setCreatingUser(false);
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(usuario)) {
+      toast({ 
+        variant: "destructive", 
+        title: "Usuario inválido", 
+        description: "El usuario solo puede contener letras, números y guiones bajos." 
+      });
+      setCreatingUser(false);
+      return;
+    }
+
     const newUserPayload = {
       displayName: formData.get('displayName') as string,
-      email: formData.get('email') as string,
+      email: email,
       password: formData.get('password') as string,
-      ci: formData.get('ci') as string,
-      numero: formData.get('numero') as string,
-      usuario: formData.get('usuario') as string,
+      ci: ci,
+      numero: numero,
+      usuario: usuario,
       universidad: formData.get('universidad') as string,
       role: formData.get('role') as string,
     };
@@ -202,28 +249,59 @@ export default function AdminUsersPage() {
                 <form onSubmit={handleCreateUser} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="create-displayName">Nombre Completo</Label>
+                      <Label htmlFor="create-displayName">Nombre Completo *</Label>
                       <Input id="create-displayName" name="displayName" required className="bg-white text-black" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="create-email">Email</Label>
+                      <Label htmlFor="create-email">Email *</Label>
                       <Input id="create-email" name="email" type="email" required className="bg-white text-black" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="create-ci">CI</Label>
-                      <Input id="create-ci" name="ci" className="bg-white text-black" />
+                      <Label htmlFor="create-ci">CI *</Label>
+                      <Input 
+                        id="create-ci" 
+                        name="ci" 
+                        type="text"
+                        inputMode="numeric"
+                        required 
+                        className="bg-white text-black"
+                        onInput={(e) => {
+                          e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')
+                        }}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="create-numero">Número</Label>
-                      <Input id="create-numero" name="numero" className="bg-white text-black" />
+                      <Label htmlFor="create-numero">Celular *</Label>
+                      <Input 
+                        id="create-numero" 
+                        name="numero" 
+                        type="text"
+                        inputMode="numeric"
+                        required 
+                        className="bg-white text-black"
+                        onInput={(e) => {
+                          e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')
+                        }}
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="create-usuario">Usuario</Label>
-                      <Input id="create-usuario" name="usuario" className="bg-white text-black" />
+                      <Label htmlFor="create-usuario">Usuario *</Label>
+                      <Input 
+                        id="create-usuario" 
+                        name="usuario" 
+                        required 
+                        className="bg-white text-black"
+                        pattern="[a-zA-Z0-9_]+"
+                        title="Solo letras, números y guiones bajos"
+                        onInput={(e) => {
+                          e.currentTarget.value = e.currentTarget.value.replace(/[^a-zA-Z0-9_]/g, '')
+                        }}
+                      />
+                      <p className="text-xs text-muted-foreground">Solo letras, números y guiones bajos (_)</p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="create-universidad">Universidad</Label>
@@ -237,14 +315,14 @@ export default function AdminUsersPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="create-role">Rol</Label>
-                      <Select name="role" defaultValue="customer" required>
+                      <Select name="role" defaultValue="user" required>
                         <SelectTrigger className="bg-white text-black">
                           <SelectValue placeholder="Seleccionar rol" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="customer">Cliente</SelectItem>
-                          <SelectItem value="validador">Validador</SelectItem>
-                          <SelectItem value="organizador">Organizador</SelectItem>
+                          <SelectItem value="user">Cliente</SelectItem>
+                          <SelectItem value="validator">Validador</SelectItem>
+                          <SelectItem value="organizer">Organizador</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>
                       </Select>
@@ -352,17 +430,44 @@ export default function AdminUsersPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="ci">CI</Label>
-                <Input id="ci" name="ci" defaultValue={editingUser?.ci} />
+                <Input 
+                  id="ci" 
+                  name="ci" 
+                  type="text"
+                  inputMode="numeric"
+                  defaultValue={editingUser?.ci}
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')
+                  }}
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="numero">Número</Label>
-                <Input id="numero" name="numero" defaultValue={editingUser?.numero} />
+                <Label htmlFor="numero">Celular</Label>
+                <Input 
+                  id="numero" 
+                  name="numero" 
+                  type="text"
+                  inputMode="numeric"
+                  defaultValue={editingUser?.numero}
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '')
+                  }}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="usuario">Usuario</Label>
-                <Input id="usuario" name="usuario" defaultValue={editingUser?.usuario} />
+                <Input 
+                  id="usuario" 
+                  name="usuario" 
+                  defaultValue={editingUser?.usuario}
+                  pattern="[a-zA-Z0-9_]+"
+                  title="Solo letras, números y guiones bajos"
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^a-zA-Z0-9_]/g, '')
+                  }}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="universidad">Universidad</Label>
@@ -377,9 +482,9 @@ export default function AdminUsersPage() {
                     <SelectValue placeholder="Seleccionar rol" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="customer">Cliente</SelectItem>
-                    <SelectItem value="validador">Validador</SelectItem>
-                    <SelectItem value="organizador">Organizador</SelectItem>
+                    <SelectItem value="user">Cliente</SelectItem>
+                    <SelectItem value="validator">Validador</SelectItem>
+                    <SelectItem value="organizer">Organizador</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

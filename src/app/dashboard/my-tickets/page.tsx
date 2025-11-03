@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Ticket, Download, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Ticket, Download, RefreshCw, X, Search, Filter } from 'lucide-react';
 import QRCode from 'qrcode.react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -33,13 +35,30 @@ interface GroupedOrder {
   user_name?: string; // Añade user_name como opcional
 }
 
+// Define la interfaz para las órdenes pendientes
+interface PendingOrder {
+  id: string;
+  ticket_name: string;
+  quantity: number;
+  total_price: number;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  receipt_url: string;
+  created_at: string;
+  event_id: string;
+}
+
 export default function MyTicketsPage() {
   const { user, loading: authLoading } = useAuth();
   const [tickets, setTickets] = useState<MyTicket[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [pdfContent, setPdfContent] = useState<MyTicket[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
   const { toast } = useToast();
   const userId = user?.id;
   const renderedTicketsCount = useRef(0);
@@ -47,34 +66,40 @@ export default function MyTicketsPage() {
   const fetchTickets = useCallback(async () => {
     if (!userId) {
       setTickets([]);
+      setPendingOrders([]);
       setLoading(false);
       return;
     }
     setLoading(true);
     setErrorMsg(null);
     try {
-      const { data, error } = await supabase
-        .from('tickets')
-        .select('id, ticket_name, createdAt, status, order_id, user_name')
-        .eq('user_id', userId)
-        .order('createdAt', { ascending: false });
-      if (error) throw error;
-      setTickets(data || []);
+      // Cargar tickets verificados
+      const ticketsResponse = await fetch(`/api/tickets?userId=${userId}`);
+      if (!ticketsResponse.ok) throw new Error('Failed to fetch tickets');
+      const ticketsData = await ticketsResponse.json();
+      setTickets(ticketsData || []);
+
+      // Cargar órdenes pendientes/aprobadas/rechazadas
+      const ordersResponse = await fetch(`/api/orders?userId=${userId}`);
+      if (ordersResponse.ok) {
+        const ordersData = await ordersResponse.json();
+        // Filtrar solo órdenes que no tienen tickets verificados aún
+        const filteredOrders = ordersData.filter((order: PendingOrder) => 
+          order.status !== 'cancelled'
+        );
+        setPendingOrders(filteredOrders || []);
+      }
     } catch (error: any) {
       setErrorMsg(error.message || 'No se pudieron cargar tus entradas.');
       setTickets([]);
+      setPendingOrders([]);
       console.error("Error fetching tickets:", error);
     } finally {
       setLoading(false);
     }
   }, [userId]);
 
-  useEffect(() => {
-    if (!authLoading) {
-      fetchTickets();
-    }
-  }, [authLoading, fetchTickets]);
-
+  // TODOS LOS useMemo DEBEN IR ANTES DE useEffect
   const groupedOrders = useMemo(() => {
     const groups: { [key: string]: GroupedOrder } = {};
     tickets.forEach(ticket => {
@@ -83,7 +108,7 @@ export default function MyTicketsPage() {
           order_id: ticket.order_id,
           ticket_name: ticket.ticket_name,
           createdAt: ticket.createdAt,
-          user_name: ticket.user_name, // Asigna el nombre de usuario
+          user_name: ticket.user_name,
           tickets: [],
         };
       }
@@ -91,6 +116,85 @@ export default function MyTicketsPage() {
     });
     return Object.values(groups);
   }, [tickets]);
+
+  // Filtrar órdenes pendientes
+  const filteredPendingOrders = useMemo(() => {
+    let filtered = [...pendingOrders];
+
+    // Filtro por búsqueda
+    if (searchTerm) {
+      filtered = filtered.filter(order => 
+        order.ticket_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por estado
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+
+    // Filtro por fecha
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(order => {
+        const orderDate = new Date(order.created_at);
+        switch (dateFilter) {
+          case 'today':
+            return orderDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return orderDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return orderDate >= monthAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [pendingOrders, searchTerm, statusFilter, dateFilter]);
+
+  // Filtrar tickets verificados
+  const filteredGroupedOrders = useMemo(() => {
+    let filtered = [...groupedOrders];
+
+    // Filtro por búsqueda
+    if (searchTerm) {
+      filtered = filtered.filter(order => 
+        order.ticket_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por fecha
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        switch (dateFilter) {
+          case 'today':
+            return orderDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return orderDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            return orderDate >= monthAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    return filtered;
+  }, [groupedOrders, searchTerm, dateFilter]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      fetchTickets();
+    }
+  }, [authLoading, fetchTickets]);
 
   const generatePdf = async (orderId: string) => {
     const input = document.getElementById('pdf-render-area');
@@ -146,6 +250,52 @@ export default function MyTicketsPage() {
       : { text: 'Válida', variant: 'default' as const };
   };
 
+  const downloadApprovedOrderPDF = async (order: PendingOrder) => {
+    setDownloading(order.id);
+    try {
+      // Obtener los tickets de esta orden
+      const ticketsRes = await fetch(`/api/tickets?orderId=${order.id}`);
+      if (!ticketsRes.ok) throw new Error('No se pudieron cargar los tickets');
+      
+      const orderTickets = await ticketsRes.json();
+      
+      if (orderTickets.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Sin tickets",
+          description: "Esta orden aún no tiene tickets generados.",
+        });
+        setDownloading(null);
+        return;
+      }
+
+      // Usar la función existente para generar el PDF
+      renderedTicketsCount.current = 0;
+      setPdfContent(orderTickets);
+    } catch (error) {
+      console.error("Error descargando tickets:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron descargar los tickets.",
+      });
+      setDownloading(null);
+    }
+  };
+
+  const getPendingOrderStatus = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return { text: 'Pendiente', variant: 'secondary' as const, description: 'Tu comprobante está siendo revisado' };
+      case 'approved':
+        return { text: 'Aprobada', variant: 'default' as const, description: 'Tu pago fue verificado. Tus entradas están siendo generadas.' };
+      case 'rejected':
+        return { text: 'Rechazada', variant: 'destructive' as const, description: 'El comprobante no pudo ser verificado' };
+      default:
+        return { text: status, variant: 'outline' as const, description: '' };
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
@@ -176,19 +326,141 @@ export default function MyTicketsPage() {
         </Button>
       </div>
 
-      {tickets.length === 0 && !loading ? (
+      {/* Filtros */}
+      <Card className="border-2 border-gray-200 bg-gray-50">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Input
+                placeholder="Buscar por nombre de entrada..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-2 focus:border-blue-500 text-base font-medium bg-white"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-[180px] border-2 font-medium text-base bg-white">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="font-medium">Todos los estados</SelectItem>
+                <SelectItem value="pending" className="font-medium">Pendiente</SelectItem>
+                <SelectItem value="approved" className="font-medium">Aprobada</SelectItem>
+                <SelectItem value="rejected" className="font-medium">Rechazada</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full md:w-[180px] border-2 font-medium text-base bg-white">
+                <SelectValue placeholder="Fecha" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="font-medium">Todas las fechas</SelectItem>
+                <SelectItem value="today" className="font-medium">Hoy</SelectItem>
+                <SelectItem value="week" className="font-medium">Última semana</SelectItem>
+                <SelectItem value="month" className="font-medium">Último mes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sección de Órdenes Pendientes/Aprobadas/Rechazadas */}
+      {filteredPendingOrders.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Compras en Proceso
+            <span className="text-muted-foreground font-normal text-lg ml-2">
+              ({filteredPendingOrders.length})
+            </span>
+          </h2>
+          <div className="grid gap-4">
+            {filteredPendingOrders.map((order) => {
+              const statusInfo = getPendingOrderStatus(order.status);
+              return (
+                <Card key={order.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg">
+                          {order.ticket_name}
+                          <span className="text-muted-foreground font-normal ml-2">(x{order.quantity})</span>
+                        </CardTitle>
+                        <CardDescription>
+                          Orden del: {new Date(order.created_at).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </CardDescription>
+                      </div>
+                      <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
+                    </div>
+                    <div className="mt-4 space-y-2 text-sm">
+                      <p className="text-muted-foreground">{statusInfo.description}</p>
+                      <p className="font-semibold">
+                        Total: Gs. {order.total_price.toLocaleString('es-PY')}
+                      </p>
+                      <div className="flex gap-2 items-center flex-wrap">
+                        {order.receipt_url && (
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-blue-600 hover:text-blue-800 hover:underline"
+                            onClick={() => setSelectedReceipt(order.receipt_url)}
+                          >
+                            Ver comprobante →
+                          </Button>
+                        )}
+                        {order.status === 'approved' && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-2 bg-green-600 hover:bg-green-700"
+                            onClick={() => downloadApprovedOrderPDF(order)}
+                            disabled={downloading === order.id}
+                          >
+                            {downloading === order.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Download className="w-4 h-4" />
+                            )}
+                            Descargar Entradas
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje cuando no hay entradas ni órdenes */}
+      {pendingOrders.length === 0 && !loading && (
         <Card className="text-center py-12">
           <CardHeader>
             <Ticket className="mx-auto h-12 w-12 text-muted-foreground" />
-            <CardTitle className="mt-4">No tienes entradas</CardTitle>
+            <CardTitle className="mt-4">No tienes órdenes</CardTitle>
             <CardDescription>
               Cuando compres entradas para un evento, aparecerán aquí.
             </CardDescription>
           </CardHeader>
         </Card>
-      ) : user?.role === 'customer' ? (
-        <Accordion type="single" collapsible className="w-full space-y-4">
-          {groupedOrders.map((order) => {
+      )}
+
+      {/* Ya no mostramos la sección de entradas verificadas */}
+      {false && tickets.length > 0 && user?.role === 'user' ? (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Entradas Verificadas
+            <span className="text-muted-foreground font-normal text-lg ml-2">
+              ({filteredGroupedOrders.length})
+            </span>
+          </h2>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+          {filteredGroupedOrders.map((order) => {
             const orderStatus = getOrderStatus(order);
             return (
               <AccordionItem value={order.order_id} key={order.order_id} className="border rounded-lg">
@@ -241,8 +513,9 @@ export default function MyTicketsPage() {
             );
           })}
         </Accordion>
-      ) : (
-        // Vista para roles que no son 'customer'
+        </div>
+      ) : tickets.length > 0 ? (
+        // Vista para roles que no son 'user'
         <div>
           <Button onClick={() => handleDownloadPdf(tickets, 'todas-mis-entradas')} disabled={!!downloading} size="lg" className="w-full md:w-auto mb-8">
             {downloading === 'todas-mis-entradas' ? (
@@ -279,7 +552,26 @@ export default function MyTicketsPage() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
+
+      {/* Modal para ver comprobante */}
+      <Dialog open={!!selectedReceipt} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Comprobante de Transferencia</DialogTitle>
+          </DialogHeader>
+          <div className="relative w-full h-[70vh] flex items-center justify-center bg-muted/10 rounded-lg overflow-hidden">
+            {selectedReceipt && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={selectedReceipt}
+                alt="Comprobante de pago"
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Contenedor invisible para renderizar el PDF */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>

@@ -212,10 +212,10 @@ export default function AddUserForm({ onUserAdded }: AddUserFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cliente">Cliente</SelectItem>
+              <SelectItem value="user">Cliente</SelectItem>
               <SelectItem value="admin">Administrador</SelectItem>
-              <SelectItem value="validador">Validador</SelectItem>
-              <SelectItem value="organizador">Organizador</SelectItem>
+              <SelectItem value="validator">Validador</SelectItem>
+              <SelectItem value="organizer">Organizador</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
 
 // Interfaz para los datos del perfil que vienen de la tabla 'users'
 interface ProfileData {
@@ -30,38 +29,18 @@ export default function ProfilePage() {
     if (!user) return;
     setIsFetchingProfile(true);
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('displayName, ci, numero, usuario, universidad')
-        .eq('id', user.id)
-        .maybeSingle(); // evita lanzar error si no existe
-
-      if (error) {
-        console.error('Error fetching profile details raw:', error);
-      }
-
-      if (!data) {
-        // crear registro inicial vacío si no existe
-        const initPayload = {
-          id: user.id,
-            displayName: user.user_metadata?.displayName || '',
-            ci: '',
-            numero: '',
-            usuario: '',
-            universidad: ''
-        };
-        const { data: inserted, error: insertError } = await supabase
-          .from('users')
-          .insert(initPayload)
-          .select('displayName, ci, numero, usuario, universidad')
-          .single();
-        if (insertError) {
-          console.error('Could not auto-create user profile:', insertError);
-        } else {
-          setProfileData(inserted);
-        }
+      const response = await fetch(`/api/users/${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData({
+          displayName: data.display_name || '',
+          ci: data.ci || '',
+          numero: data.numero || '',
+          usuario: data.usuario || '',
+          universidad: data.universidad || ''
+        });
       } else {
-        setProfileData(data);
+        console.error('Error fetching profile details');
       }
     } catch (err) {
       console.error('Unexpected profile fetch error:', err);

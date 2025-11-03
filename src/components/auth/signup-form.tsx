@@ -26,8 +26,54 @@ export default function SignUpForm() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const ci = formData.get("ci") as string;
+    const numero = formData.get("numero") as string;
+    const usuario = formData.get("usuario") as string;
+
+    // Validaciones del lado del cliente
+    if (!ci || !numero || !email) {
+      toast({
+        variant: "destructive",
+        title: "Campos obligatorios",
+        description: "CI, Celular y Correo son obligatorios.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validar que CI solo contenga números
+    if (!/^\d+$/.test(ci)) {
+      toast({
+        variant: "destructive",
+        title: "CI inválido",
+        description: "La cédula debe contener solo números.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validar que número solo contenga números
+    if (!/^\d+$/.test(numero)) {
+      toast({
+        variant: "destructive",
+        title: "Celular inválido",
+        description: "El número de celular debe contener solo números.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validar que usuario solo contenga letras, números y guiones bajos
+    if (!/^[a-zA-Z0-9_]+$/.test(usuario)) {
+      toast({
+        variant: "destructive",
+        title: "Usuario inválido",
+        description: "El usuario solo puede contener letras, números y guiones bajos.",
+      });
+      setIsLoading(false);
+      return;
+    }
     
-    const userRole = "customer";
+    const userRole = "user";
 
     try {
       // Llama al endpoint de registro vía contexto
@@ -117,26 +163,60 @@ export default function SignUpForm() {
 
       <div className="space-y-4">
          <div className="grid gap-2">
-            <Label htmlFor="fullName">Nombre Completo</Label>
+            <Label htmlFor="fullName">Nombre Completo *</Label>
             <Input id="fullName" name="fullName" placeholder="Tu nombre completo" required className="bg-white text-black" />
           </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
-                <Label htmlFor="ci">CI</Label>
-                <Input id="ci" name="ci" type="number" inputMode="numeric" pattern="[0-9]*" min="1" step="1" placeholder="5.456.125" required className="bg-white text-black" onInput={e => { e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') }} />
+                <Label htmlFor="ci">CI *</Label>
+                <Input 
+                  id="ci" 
+                  name="ci" 
+                  type="text" 
+                  inputMode="numeric" 
+                  placeholder="5456125" 
+                  required 
+                  className="bg-white text-black" 
+                  onInput={e => { 
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') 
+                  }} 
+                />
             </div>
             <div className="grid gap-2">
-                <Label htmlFor="numero">Número</Label>
-                <Input id="numero" name="numero" type="number" inputMode="numeric" pattern="[0-9]*" min="1" step="1" placeholder="0991123456" required className="bg-white text-black" onInput={e => { e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') }} />
+                <Label htmlFor="numero">Celular *</Label>
+                <Input 
+                  id="numero" 
+                  name="numero" 
+                  type="text" 
+                  inputMode="numeric" 
+                  placeholder="0991123456" 
+                  required 
+                  className="bg-white text-black" 
+                  onInput={e => { 
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '') 
+                  }} 
+                />
             </div>
         </div>
         <div className="grid gap-2">
-            <Label htmlFor="email">Correo Electrónico</Label>
+            <Label htmlFor="email">Correo Electrónico *</Label>
             <Input id="email" name="email" type="email" placeholder="tu@email.com" required className="bg-white text-black" />
         </div>
         <div className="grid gap-2">
-            <Label htmlFor="usuario">Usuario</Label>
-            <Input id="usuario" name="usuario" placeholder="usuario_unico" required className="bg-white text-black" />
+            <Label htmlFor="usuario">Usuario *</Label>
+            <Input 
+              id="usuario" 
+              name="usuario" 
+              placeholder="usuario_unico" 
+              required 
+              className="bg-white text-black"
+              pattern="[a-zA-Z0-9_]+"
+              title="Solo letras, números y guiones bajos"
+              onInput={e => { 
+                e.currentTarget.value = e.currentTarget.value.replace(/[^a-zA-Z0-9_]/g, '') 
+              }}
+            />
+            <p className="text-xs text-muted-foreground">Solo letras, números y guiones bajos (_)</p>
         </div>
         <div className="grid gap-2">
             <Label htmlFor="universidad">Universidad</Label>

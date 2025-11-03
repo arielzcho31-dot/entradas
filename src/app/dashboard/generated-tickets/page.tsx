@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Loader2, Ticket, Download, RefreshCw } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Loader2, Ticket, Download, RefreshCw, Filter } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { TicketDesign } from '@/components/tickets/ticket-design';
@@ -15,6 +16,8 @@ import { TicketDesign } from '@/components/tickets/ticket-design';
 interface GeneratedTicket {
   id: string;
   ticket_name: string;
+  event_id: string;
+  event_name?: string;
   createdAt: string;
 }
 
@@ -23,8 +26,15 @@ interface GroupedBatch {
   tickets: GeneratedTicket[];
 }
 
+interface Event {
+  id: string;
+  name: string;
+}
+
 export default function GeneratedTicketsPage() {
   const [tickets, setTickets] = useState<GeneratedTicket[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('all');
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [pdfContent, setPdfContent] = useState<GeneratedTicket[]>([]);
@@ -34,13 +44,9 @@ export default function GeneratedTicketsPage() {
   const fetchGeneratedTickets = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('tickets')
-        .select('id, ticket_name, createdAt')
-        .is('user_id', null) // Obtiene tickets sin usuario asignado
-        .order('createdAt', { ascending: false });
-
-      if (error) throw error;
+      const response = await fetch('/api/tickets?generated=true');
+      if (!response.ok) throw new Error('Failed to fetch tickets');
+      const data = await response.json();
       setTickets(data || []);
     } catch (error) {
       console.error("Error fetching generated tickets:", error);
@@ -50,24 +56,43 @@ export default function GeneratedTicketsPage() {
     }
   }, [toast]);
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await fetch('/api/events');
+      if (!response.ok) throw new Error('Failed to fetch events');
+      const data = await response.json();
+      setEvents(data || []);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchGeneratedTickets();
+    fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const groupedBatches = useMemo(() => {
+    // Filtrar por evento si se seleccionó uno
+    const filteredTickets = selectedEventId === 'all' 
+      ? tickets 
+      : tickets.filter(t => t.event_id === selectedEventId);
+
     const groups: { [key: string]: GroupedBatch } = {};
-    tickets.forEach(ticket => {
-      if (!groups[ticket.ticket_name]) {
-        groups[ticket.ticket_name] = {
-          batch_name: ticket.ticket_name,
+    filteredTickets.forEach(ticket => {
+      // Agrupar por evento_id + ticket_name para separar por evento y tipo
+      const groupKey = `${ticket.event_id}_${ticket.ticket_name}`;
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          batch_name: `${ticket.event_name || 'Evento'} - ${ticket.ticket_name}`,
           tickets: [],
         };
       }
-      groups[ticket.ticket_name].tickets.push(ticket);
+      groups[groupKey].tickets.push(ticket);
     });
     return Object.values(groups);
-  }, [tickets]);
+  }, [tickets, selectedEventId]);
 
   const generatePdf = async (batchName: string) => {
     const input = document.getElementById(`pdf-render-area`);
@@ -99,16 +124,19 @@ export default function GeneratedTicketsPage() {
     }
   };
 
+  const [currentBatchName, setCurrentBatchName] = useState<string>('');
+
   const handleDownloadPdf = (batch: GroupedBatch) => {
     setDownloading(batch.batch_name);
+    setCurrentBatchName(batch.batch_name);
     renderedTicketsCount.current = 0;
     setPdfContent(batch.tickets);
   };
 
-  const handleTicketRendered = (batchName: string, totalTickets: number) => {
+  const handleTicketRendered = (totalTickets: number) => {
     renderedTicketsCount.current += 1;
     if (renderedTicketsCount.current === totalTickets) {
-      generatePdf(batchName);
+      generatePdf(currentBatchName);
     }
   };
 
@@ -134,6 +162,34 @@ export default function GeneratedTicketsPage() {
           Refrescar
         </Button>
       </div>
+
+      {/* Filtros */}
+      <Card className="bg-gray-50 dark:bg-gray-900">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filtrar Entradas
+          </CardTitle>
+        </CardHeader>
+        <div className="px-6 pb-6">
+          <div className="space-y-2">
+            <Label htmlFor="eventFilter">Filtrar por Evento</Label>
+            <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+              <SelectTrigger id="eventFilter" className="bg-white dark:bg-gray-800">
+                <SelectValue placeholder="Todos los eventos" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800">
+                <SelectItem value="all">Todos los eventos</SelectItem>
+                {events.map(event => (
+                  <SelectItem key={event.id} value={event.id}>
+                    {event.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
 
       {groupedBatches.length === 0 ? (
         <Card className="text-center py-12">
@@ -182,13 +238,12 @@ export default function GeneratedTicketsPage() {
               ticketId={ticket.id}
               eventName={
                 <>
-                  <span style={{ color: '#ec4899' }}>UNIDA</span>
-                  <span style={{ color: '#ffffff' }}>FEST 2025</span>
+                  <span style={{ color: '#ec4899' }}>{ticket.event_name || 'EVENTO'}</span>
                 </>
               }
               ticketName={ticket.ticket_name}
               userName="Invitado"
-              onRendered={() => handleTicketRendered(ticket.ticket_name, pdfContent.length)}
+              onRendered={() => handleTicketRendered(pdfContent.length)}
             />
           ))}
         </div>

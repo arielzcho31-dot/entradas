@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { query } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('id, userName, createdAt, totalPrice, quantity') // Añade id y quantity
-      .in('status', ['verified', 'used'])
-      .order('createdAt', { ascending: false })
-      .limit(5);
+    const result = await query(
+      `SELECT id, user_id as "userName", created_at as "createdAt", total_price as "totalPrice", quantity
+       FROM orders
+       WHERE status IN ('verified', 'used')
+       ORDER BY created_at DESC
+       LIMIT 5`
+    );
 
-    if (error) {
-      throw error;
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json(result.rows);
 
   } catch (error: any) {
     console.error('Error fetching recent sales:', error);
