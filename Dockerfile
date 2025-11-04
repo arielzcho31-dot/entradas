@@ -20,7 +20,15 @@ WORKDIR /app
 
 # Copiar dependencias del stage anterior
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# Copiar archivos de código fuente
+COPY package*.json ./
+COPY tsconfig.json ./
+COPY next.config.ts ./
+COPY postcss.config.mjs ./
+COPY tailwind.config.ts ./
+COPY src ./src
+COPY public ./public
 
 # Variables de entorno para build
 ENV NEXT_TELEMETRY_DISABLED 1
