@@ -47,12 +47,17 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Copiar archivos necesarios para producción
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/package.json ./package.json
 
+# Copiar node_modules necesarios
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
 # Copiar archivos de build
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+
+# Copiar carpeta public si existe
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Crear directorio para uploads
 RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
@@ -68,4 +73,4 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Comando para iniciar la aplicación
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
