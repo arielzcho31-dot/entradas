@@ -46,21 +46,17 @@ RUN adduser --system --uid 1001 nextjs
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copiar archivos necesarios para producción
-COPY --from=builder /app/next.config.ts ./
-COPY --from=builder /app/package.json ./package.json
-
-# Copiar node_modules necesarios
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Copiar node_modules de producción
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copiar archivos de build
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-
-# Copiar carpeta public si existe
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/next.config.ts ./
 
-# Crear directorio para uploads
-RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+# Crear directorios necesarios
+RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
 
 # Cambiar a usuario no-root
 USER nextjs
