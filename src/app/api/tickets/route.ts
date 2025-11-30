@@ -10,34 +10,42 @@ export async function GET(request: NextRequest) {
     const ticketId = searchParams.get('id');
     const generated = searchParams.get('generated');
     
-    let queryText = 'SELECT * FROM tickets';
+    let queryText = `
+      SELECT 
+        tickets.*,
+        events.name as event_name,
+        events.event_date,
+        events.location
+      FROM tickets
+      LEFT JOIN events ON tickets.event_id = events.id
+    `;
     const params: any[] = [];
     const conditions: string[] = [];
     
     if (userId) {
-      conditions.push(`user_id = $${params.length + 1}`);
+      conditions.push(`tickets.user_id = $${params.length + 1}`);
       params.push(userId);
     }
 
     if (orderId) {
-      conditions.push(`order_id = $${params.length + 1}`);
+      conditions.push(`tickets.order_id = $${params.length + 1}`);
       params.push(orderId);
     }
 
     if (ticketId) {
-      conditions.push(`id = $${params.length + 1}`);
+      conditions.push(`tickets.id = $${params.length + 1}`);
       params.push(ticketId);
     }
     
     if (generated === 'true') {
-      conditions.push('user_id IS NULL');
+      conditions.push('tickets.user_id IS NULL');
     }
     
     if (conditions.length > 0) {
       queryText += ' WHERE ' + conditions.join(' AND ');
     }
     
-    queryText += ' ORDER BY created_at DESC';
+    queryText += ' ORDER BY tickets.created_at DESC';
 
     const result = await query(queryText, params);
     

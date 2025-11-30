@@ -15,10 +15,10 @@ import { TicketDesign } from '@/components/tickets/ticket-design';
 // Interfaces
 interface GeneratedTicket {
   id: string;
-  ticket_name: string;
+  ticket_type_name: string;
   event_id: string;
   event_name?: string;
-  createdAt: string;
+  created_at: string;
 }
 
 interface GroupedBatch {
@@ -81,11 +81,11 @@ export default function GeneratedTicketsPage() {
 
     const groups: { [key: string]: GroupedBatch } = {};
     filteredTickets.forEach(ticket => {
-      // Agrupar por evento_id + ticket_name para separar por evento y tipo
-      const groupKey = `${ticket.event_id}_${ticket.ticket_name}`;
+      // Agrupar por evento_id + ticket_type_name para separar por evento y tipo
+      const groupKey = `${ticket.event_id}_${ticket.ticket_type_name}`;
       if (!groups[groupKey]) {
         groups[groupKey] = {
-          batch_name: `${ticket.event_name || 'Evento'} - ${ticket.ticket_name}`,
+          batch_name: `${ticket.event_name || 'Sin nombre'} - ${ticket.ticket_type_name || 'Sin tipo'}`,
           tickets: [],
         };
       }
@@ -203,8 +203,8 @@ export default function GeneratedTicketsPage() {
         </Card>
       ) : (
         <Accordion type="single" collapsible className="w-full space-y-4">
-          {groupedBatches.map((batch) => (
-            <AccordionItem value={batch.batch_name} key={batch.batch_name} className="border rounded-lg">
+          {groupedBatches.map((batch, index) => (
+            <AccordionItem value={batch.batch_name} key={`${batch.batch_name}-${index}`} className="border rounded-lg">
               <div className="flex items-center p-4">
                 <AccordionTrigger className="flex-1 text-left p-0 hover:no-underline">
                   <div>
