@@ -5,7 +5,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: ticketwise-app-prod
     environment:
       - NODE_ENV=production
@@ -33,7 +33,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx.prod.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
       - ./uploads:/var/www/uploads:ro
       - ./certbot/www:/var/www/certbot/:ro

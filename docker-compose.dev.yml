@@ -5,7 +5,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: docker/Dockerfile.dev
     container_name: ticketwise-dev
     ports:
       - "9002:9002"  # Puerto de desarrollo configurado en package.json

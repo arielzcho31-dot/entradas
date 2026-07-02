@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="DER TicketWise" id="der">
+    
+    <mxGraphModel
+      dx="1400"
+      dy="900"
+      grid="1"
+      gridSize="10"
+      guides="1"
+      connect="1"
+      page="1"
+      pageScale="1"
+      pageWidth="1600"
+      pageHeight="1100"
+      background="#ffffff">
+
+      <root>
+
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ====================== -->
+        <!-- TITULO -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="titulo"
+          value="Figura 2&#10;Diagrama Entidad-Relacion del Sistema TicketWise"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=16;fontStyle=1;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="450" y="20" width="500" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- COMPANIES -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="companies"
+          value="companies&#10;━━━━━━━━━━━━━━&#10;PK id&#10;name&#10;description&#10;contact_email&#10;contact_phone&#10;status&#10;created_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="70" y="140" width="220" height="180" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- EVENTS -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="events"
+          value="events&#10;━━━━━━━━━━━━━━&#10;PK id&#10;name&#10;slug&#10;description&#10;category&#10;event_date&#10;location&#10;image_url&#10;status&#10;is_informative&#10;FK created_by&#10;FK company_id&#10;created_at&#10;updated_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="420" y="110" width="250" height="300" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION companies -> events -->
+
+        <mxCell
+          id="rel1"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="companies"
+          target="events">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- TICKET TYPES -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="ticket_types"
+          value="ticket_types&#10;━━━━━━━━━━━━━━&#10;PK id&#10;FK event_id&#10;name&#10;price&#10;quantity_available&#10;description&#10;created_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="830" y="140" width="240" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION events -> ticket_types -->
+
+        <mxCell
+          id="rel2"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="events"
+          target="ticket_types">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- USERS -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="users"
+          value="users&#10;━━━━━━━━━━━━━━&#10;PK id&#10;display_name&#10;ci&#10;usuario&#10;numero&#10;email&#10;password_hash&#10;role&#10;universidad&#10;created_at&#10;updated_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="70" y="500" width="240" height="260" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- ORDERS -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="orders"
+          value="orders&#10;━━━━━━━━━━━━━━&#10;PK id&#10;FK event_id&#10;FK ticket_type_id&#10;FK user_id&#10;user_name&#10;user_email&#10;quantity&#10;total_price&#10;receipt_url&#10;status&#10;created_at&#10;updated_at&#10;used_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="430" y="500" width="260" height="310" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION users -> orders -->
+
+        <mxCell
+          id="rel3"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="users"
+          target="orders">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION events -> orders -->
+
+        <mxCell
+          id="rel4"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="events"
+          target="orders">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- TICKETS -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="tickets"
+          value="tickets&#10;━━━━━━━━━━━━━━&#10;PK id&#10;FK event_id&#10;FK order_id&#10;FK user_id&#10;user_name&#10;ticket_type_name&#10;status&#10;created_at&#10;used_at&#10;FK validated_by"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="860" y="520" width="250" height="240" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION orders -> tickets -->
+
+        <mxCell
+          id="rel5"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="orders"
+          target="tickets">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- EVENT ORGANIZERS -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="event_organizers"
+          value="event_organizers&#10;━━━━━━━━━━━━━━&#10;PK FK event_id&#10;PK FK user_id&#10;role&#10;added_at"
+          style="shape=table;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;align=left;spacingLeft=6;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="470" y="900" width="230" height="140" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION events -> event_organizers -->
+
+        <mxCell
+          id="rel6"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="events"
+          target="event_organizers">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- RELACION users -> event_organizers -->
+
+        <mxCell
+          id="rel7"
+          value="1:N"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=ERmany;"
+          edge="1"
+          parent="1"
+          source="users"
+          target="event_organizers">
+
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- LEYENDA -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="leyenda"
+          value="Leyenda:&#10;PK = Clave Primaria&#10;FK = Clave Foranea"
+          style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="1180" y="900" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ====================== -->
+        <!-- NOTA -->
+        <!-- ====================== -->
+
+        <mxCell
+          id="nota"
+          value="Nota. Elaboracion propia (2026)."
+          style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontStyle=2;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="70" y="1040" width="320" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+</mxfile>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle, RefreshCw, Check, X, Calendar, Search, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -242,11 +242,11 @@ export default function ValidatorDashboard() {
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
-                        <div className="flex flex-col items-center gap-4">
-                          <h3 className="text-lg font-semibold">Comprobante de Pago</h3>
+                        <DialogTitle>Comprobante de Pago</DialogTitle>
+                        <div className="flex items-center justify-center">
                           <img
                             src={order.receipt_url}
-                            alt="Comprobante"
+                            alt="Comprobante de pago"
                             className="max-w-full h-auto rounded-lg"
                           />
                         </div>

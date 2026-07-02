@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ export default function ScanDashboard() {
   const [scannerKey, setScannerKey] = useState(0);
   const [manualCode, setManualCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -125,27 +126,64 @@ export default function ScanDashboard() {
           <Card>
             <CardContent className="flex flex-col items-center gap-4 pt-6">
               {showScanner ? (
-                <Scanner
-  key={scannerKey}
-  onScan={(result) => {
-    if (result && Array.isArray(result) && result.length > 0 && result[0].rawValue) {
-      handleVerification(result[0].rawValue);
-    }
-  }}
-  onError={(error) => {
-    console.error(error);
-    toast({
-      variant: "destructive",
-      title: "Error de cámara",
-      description: "No se pudo acceder a la cámara."
-    });
-  }}
-  constraints={{ facingMode: 'environment' }}
-  classNames={{ container: "w-full max-w-xs rounded border" }}
-/>
-
+                <div className="w-full max-w-xs">
+                  {cameraError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                      <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                      <p className="text-sm text-red-700 font-semibold mb-3">{cameraError}</p>
+                      <Button 
+                        onClick={() => {
+                          setCameraError(null);
+                          setScannerKey(prev => prev + 1);
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Reintentar
+                      </Button>
+                    </div>
+                  ) : (
+                    <Scanner
+                      key={scannerKey}
+                      onScan={(result) => {
+                        if (result && Array.isArray(result) && result.length > 0 && result[0]?.rawValue) {
+                          handleVerification(result[0].rawValue);
+                        }
+                      }}
+                      onError={(error) => {
+                        console.error('Scanner error:', error);
+                        const errorMessage = error?.message || 'Error al acceder a la cámara';
+                        setCameraError(errorMessage);
+                        toast({
+                          variant: "destructive",
+                          title: "Error de cámara",
+                          description: errorMessage
+                        });
+                      }}
+                      constraints={{ 
+                        facingMode: 'environment',
+                        audio: false
+                      }}
+                      classNames={{ 
+                        container: "w-full rounded border border-gray-300",
+                        video: "w-full h-auto"
+                      }}
+                    />
+                  )}
+                </div>
               ) : (
-                <Button onClick={() => { setShowScanner(true); setScannerKey(prev => prev + 1); }} variant="secondary" className="w-full"><CameraOff className="mr-2 h-4 w-4" />Activar Cámara</Button>
+                <Button 
+                  onClick={() => { 
+                    setCameraError(null);
+                    setShowScanner(true); 
+                    setScannerKey(prev => prev + 1); 
+                  }} 
+                  variant="secondary" 
+                  className="w-full"
+                >
+                  <CameraOff className="mr-2 h-4 w-4" />
+                  Activar Cámara
+                </Button>
               )}
               {loading && <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
             </CardContent>

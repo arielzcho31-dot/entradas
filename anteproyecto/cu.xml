@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Casos de Uso" id="casos">
+    <mxGraphModel
+      dx="1400"
+      dy="1000"
+      grid="1"
+      gridSize="10"
+      guides="1"
+      connect="1"
+      page="1"
+      pageScale="1"
+      pageWidth="1400"
+      pageHeight="1000"
+      background="#ffffff">
+
+      <root>
+
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- TITULO -->
+
+        <mxCell
+          id="titulo"
+          value="Figura 3&#10;Diagrama UML de Casos de Uso del Sistema TicketWise"
+          style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=16;fontStyle=1;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="330" y="20" width="500" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- LIMITE SISTEMA -->
+
+        <mxCell
+          id="limite"
+          value="SISTEMA TICKETWISE"
+          style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#333333;strokeWidth=2;fontSize=14;fontStyle=1;rounded=1;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="320" y="90" width="650" height="560" as="geometry"/>
+        </mxCell>
+
+        <!-- ACTORES -->
+
+        <mxCell id="admin" value="Administrador"
+          style="shape=actor;whiteSpace=wrap;html=1;fontSize=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="120" y="120" width="50" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="org" value="Organizador"
+          style="shape=actor;whiteSpace=wrap;html=1;fontSize=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="120" y="250" width="50" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="val" value="Validador"
+          style="shape=actor;whiteSpace=wrap;html=1;fontSize=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="120" y="390" width="50" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="user" value="Usuario / Cliente"
+          style="shape=actor;whiteSpace=wrap;html=1;fontSize=12;"
+          vertex="1" parent="1">
+          <mxGeometry x="120" y="530" width="50" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- CASOS DE USO -->
+
+        <mxCell id="cu01"
+          value="CU-01&#10;Registrarse"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="400" y="120" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu02"
+          value="CU-02&#10;Iniciar Sesion"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="400" y="220" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu03"
+          value="CU-03&#10;Gestionar Eventos"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="690" y="120" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu04"
+          value="CU-04&#10;Gestionar Tipos de Entrada"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="690" y="220" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu05"
+          value="CU-05&#10;Comprar Entradas"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="400" y="340" width="170" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu06"
+          value="CU-06&#10;Validar Comprobante"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="690" y="340" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu07"
+          value="CU-07&#10;Escanear Ticket QR"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="690" y="450" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu08"
+          value="CU-08&#10;Gestionar Usuarios"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="400" y="450" width="170" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu09"
+          value="CU-09&#10;Ver Dashboard"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="400" y="560" width="170" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cu10"
+          value="CU-10&#10;Descargar Ticket PDF"
+          style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;"
+          vertex="1" parent="1">
+          <mxGeometry x="690" y="560" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- CONEXIONES -->
+
+        <mxCell id="a1"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;"
+          edge="1" parent="1"
+          source="admin" target="cu01">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a2"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;"
+          edge="1" parent="1"
+          source="org" target="cu02">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a3"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;"
+          edge="1" parent="1"
+          source="user" target="cu05">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="a4"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;"
+          edge="1" parent="1"
+          source="val" target="cu06">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- INCLUDE -->
+
+        <mxCell id="inc1"
+          value="&lt;&lt;include&gt;&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;fontSize=10;"
+          edge="1" parent="1"
+          source="cu05" target="cu02">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="inc2"
+          value="&lt;&lt;include&gt;&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;fontSize=10;"
+          edge="1" parent="1"
+          source="cu03" target="cu02">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="inc3"
+          value="&lt;&lt;include&gt;&gt;"
+          style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;fontSize=10;"
+          edge="1" parent="1"
+          source="cu06" target="cu02">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- NOTA -->
+
+        <mxCell
+          id="nota"
+          value="Nota. Elaboracion propia (2026)."
+          style="text;html=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=2;"
+          vertex="1"
+          parent="1">
+
+          <mxGeometry x="60" y="720" width="300" height="20" as="geometry"/>
+        </mxCell>
+
+      </root>
+
+    </mxGraphModel>
+  </diagram>
+</mxfile>

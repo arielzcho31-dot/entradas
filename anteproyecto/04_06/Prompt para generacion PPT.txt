@@ -1,0 +1,461 @@
+============================================================
+PROMPT PARA GENERACION DE PRESENTACION PPT CON IA
+Sistema: TicketWise - Plataforma de Gestion de Entradas Digitales
+Materia: Proyecto y Construccion de Sistemas
+============================================================
+
+INSTRUCCION INICIAL PARA LA IA:
+"Genera una presentacion de PowerPoint profesional de 16 diapositivas para un proyecto universitario de Ingenieria en Sistemas. Usa una paleta de colores corporativa azul marino y celeste (colores de tecnologia y confianza). Tipografia limpia sin serifa. Incluye iconos minimalistas. Cada diapositiva debe tener contenido conciso, bullets points y espacio para imagenes donde se indique."
+
+============================================================
+DIAPOSITIVA 1: PORTADA
+============================================================
+Titulo principal:
+"Diseño e Implementacion de una Plataforma Web para la Gestion, Comercializacion y Validacion de Entradas Digitales"
+
+Subtitulo:
+"TicketWise"
+
+Texto inferior:
+"Universidad de la Integracion de las Americas - Facultad de Ingenieria"
+"Carrera de Ingenieria en Sistemas"
+"Catedra: Proyecto y Construccion de Sistemas"
+"Autor: Cesar Ariel Zaracho Gimenez"
+"Tutor/a: Ing. Lucia Caballero"
+"Asuncion - Paraguay, 2026"
+
+Diseno:
+- Fondo: degradado azul marino a celeste
+- Titulo en blanco, grande
+- Subtitulo "TicketWise" destacado con un icono de ticket/QR
+- Logos de UNIDA si estan disponibles
+- Linea decorativa delgada separando secciones
+
+============================================================
+DIAPOSITIVA 2: AGENDA
+============================================================
+Titulo: "Agenda"
+
+Contenido en dos columnas:
+
+Columna izquierda:
+- Introduccion y Problema
+- Justificacion
+- Objetivos
+- Descripcion de la Solucion
+- Usuarios y Alcance
+
+Columna derecha:
+- Modelo de Negocio
+- Relacion Comercial
+- Analisis de Competencia
+- Ventaja Competitiva
+- Lean Canvas y Tecnologias
+- Cronograma y Conclusiones
+
+Diseno:
+- Fondo blanco
+- Titulo alineado a la izquierda
+- Dos columnas con iconos numerados
+- Linea de tiempo visual
+
+============================================================
+DIAPOSITIVA 3: INTRODUCCION Y PROBLEMA
+============================================================
+Titulo: "Planteamiento del Problema"
+
+Subseccion "Contexto Actual":
+- En Paraguay, mas del 70% de los eventos pequenos y medianos gestionan entradas de forma manual
+- Organizadores usan planillas de Excel y comprobantes fisicos
+- El mercado de eventos mueve ~USD 15 millones anuales
+
+Subseccion "Problemas Identificados" (6 items):
+- Procesos manuales ineficientes
+- Largas filas en accesos (+20 min de espera en eventos de 500+ personas)
+- Validaciones lentas (5-10% de error en verificacion manual)
+- Riesgo de falsificacion de entradas
+- Falta de control en tiempo real
+- Escasa informacion para decisiones (80% no conserva historial digital)
+
+Subseccion "Impacto":
+- Perdidas economicas: 5-8% de ingresos por evento
+- 65% de asistentes insatisfechos por filas
+- Menos del 30% de eventos ofrecen compra online
+- Hasta 3% de entradas falsificadas
+- 90% sin reportes historicos
+
+Diseno:
+- Fondo blanco
+- Tres secciones separadas por lineas divisorias
+- Iconos de alerta/ problema al inicio de cada bullet
+- Usar grafico de barras simple mostrando "% de eventos manuales vs digitales"
+- Tarjeta de impacto destacada en borde rojo suave al final
+
+============================================================
+DIAPOSITIVA 4: JUSTIFICACION
+============================================================
+Titulo: "Justificacion del Proyecto"
+
+Subseccion "Por Que es Necesario":
+- Digitalizar y automatizar procesos de venta y validacion de entradas
+- Reducir errores humanos en validacion
+- Control preciso de aforo en tiempo real
+- Ventas 24/7 sin necesidad de taquilla fisica
+- Datos utiles para toma de decisiones
+
+Subseccion "Aportes":
+- Tecnicos: arquitectura Next.js + React + TypeScript + PostgreSQL, JWT, QR, RBAC
+- Academicos: aplicacion practica de Ingenieria de Software, metodologia agil, normas APA 7ma edicion
+
+Subseccion "Beneficiarios":
+- Directos: organizadores de eventos y administradores
+- Indirectos: asistentes (compra comoda, acceso rapido) y comunidad academica
+
+Diseno:
+- Fondo blanco
+- Tres columnas: "Necesidad" | "Aportes" | "Beneficiarios"
+- Cada columna con icono representativo (engranaje, libro, personas)
+- Parte inferior: resumen con frase destacada
+
+============================================================
+DIAPOSITIVA 5: OBJETIVOS
+============================================================
+Titulo: "Objetivos"
+
+Objetivo General (recuadro destacado):
+"Diseñar e Implementar una plataforma web integral, segura y escalable para la gestion, comercializacion y validacion de entradas digitales para eventos de pequena escala en Asuncion, Paraguay, 2026"
+
+Objetivos Especificos (tarjetas horizontales):
+- OE1: Implementar modulo de gestion de eventos
+- OE2: Desarrollar modulo de venta con control de stock y comprobantes
+- OE3: Implementar modulo de validacion de ordenes y generacion de tickets
+- OE4: Disenar sistema de tickets con codigos QR unicos y PDF
+- OE5: Crear modulo de dashboard y estadisticas en tiempo real
+- OE6: Garantizar seguridad con JWT, roles y proteccion SQL
+
+Diseno:
+- Fondo blanco
+- Objetivo general en recuadro azul con texto blanco
+- OE en tarjetas horizontales numeradas del 1 al 6
+- Cada tarjeta con icono distinto (calendario, carrito, check, QR, grafico, escudo)
+- Distribucion 2x3 o 3x2
+
+============================================================
+DIAPOSITIVA 6: DESCRIPCION DE LA SOLUCION
+============================================================
+Titulo: "Descripcion de la Solucion - TicketWise"
+
+Parrafo introductorio:
+"Plataforma web full-stack sobre Next.js 14 con App Router, React 18, TypeScript, PostgreSQL y TailwindCSS"
+
+8 Modulos Funcionales (distribucion 4x2 o 2x4):
+Cuadricula con iconos:
+1. Autenticacion y Usuarios - [icono usuario]
+2. Gestion de Eventos - [icono calendario]
+3. Tipos de Entrada - [icono ticket]
+4. Compra de Entradas - [icono carrito]
+5. Validacion de Comprobantes - [icono check]
+6. Generacion de Tickets QR - [icono QR]
+7. Escaneo QR para Acceso - [icono camara]
+8. Dashboard y Estadisticas - [icono grafico]
+
+Diseno:
+- Fondo blanco
+- Cuadricula de 8 tarjetas con bordes redondeados
+- Cada tarjeta: icono grande arriba, nombre del modulo abajo
+- Color de tarjeta alternando entre azul claro y blanco
+- Flecha de conexion entre modulos mostrando flujo
+
+============================================================
+DIAPOSITIVA 7: USUARIOS Y ALCANCE
+============================================================
+Titulo: "Identificacion de Usuarios y Alcance"
+
+Seccion "Roles" (tabla o tarjetas):
+- Administrador: gestiona plataforma, usuarios y configura el sistema
+- Organizador: crea eventos, define precios y controla ventas
+- Validador: revisa comprobantes y escanea QR en accesos
+- Usuario/Cliente: compra entradas y descarga tickets PDF
+
+Seccion "Alcance - Incluye":
+Gestion multi-eventos | Tipos de entrada con stock | Venta online 24/7
+Subida de comprobantes | Validacion digital | Tickets QR unicos
+Escaneo QR | Dashboard metricas | Autenticacion JWT
+
+Seccion "Alcance - NO Incluye (Fase Inicial)":
+Facturacion DNIT | App movil | IA | Pasarela de pago | Multi-idioma
+
+Diseno:
+- Fondo blanco
+- Parte superior: 4 tarjetas de roles con iconos de personas
+- Parte media: nube de palabras "Incluye" en verde
+- Parte inferior: nube de palabras "No Incluye" en gris
+
+============================================================
+DIAPOSITIVA 8: MODELO DE NEGOCIO
+============================================================
+Titulo: "Modelo de Negocio"
+
+Tipo: "Plataforma Digital Hibrido (Suscripcion + Comision)"
+
+Tres columnas explicativas:
+
+Columna 1 - "Crea Valor":
+Automatiza el ciclo completo de venta de entradas: creacion, venta, validacion y control de accesos
+
+Columna 2 - "Entrega Valor":
+Via plataforma web responsive disponible 24/7 desde cualquier dispositivo
+
+Columna 3 - "Captura Valor":
+- Comision por entrada vendida
+- Planes de suscripcion
+- Servicios de promocion
+
+Planes de Servicio (tres tarjetas):
+Plan Basico: gestion + venta + QR (comision por entrada)
+Plan Profesional: funcionalidades basicas + estadisticas + soporte prioritario
+Plan Promocion: publicidad del evento en plataforma + mayor visibilidad
+
+Diseno:
+- Fondo blanco
+- Encabezado con el tipo de modelo destacado en azul
+- Tres columnas con iconos (crear/entregar/capturar)
+- Parte inferior: tres tarjetas de planes con alturas diferentes (basico bajo, profesional medio, promocion alto) o colores distintos
+
+============================================================
+DIAPOSITIVA 9: RELACION COMERCIAL
+============================================================
+Titulo: "Tipo de Relacion Comercial"
+
+Diagrama visual B2B2C:
+
+Cliente 1 (B2B): Organizadores de Eventos
+- Empresas, instituciones, organizadores independientes
+- Pagan por el servicio de gestion de entradas
+- [Flecha hacia TicketWise]
+
+TicketWise (Plataforma)
+- [Flecha hacia Cliente 2]
+
+Cliente 2 (B2C): Asistentes / Compradores
+- Personas que compran entradas para eventos
+- No pagan directamente a la plataforma (la comision la absorbe el organizador)
+
+Texto de justificacion:
+"El ingreso principal proviene de los organizadores (B2B), pero la plataforma facilita transacciones con consumidores finales (B2C). Modelo B2B2C."
+
+Diseno:
+- Fondo blanco
+- Diagrama de flujo central con 3 nodos conectados por flechas
+- Nodo izquierdo: "Organizadores (B2B)" con icono de empresa
+- Nodo centro: "TicketWise" con icono de plataforma, mas grande y destacado
+- Nodo derecho: "Asistentes (B2C)" con icono de personas
+
+============================================================
+DIAPOSITIVA 10: ANALISIS DE COMPETENCIA
+============================================================
+Titulo: "Analisis de Competencia"
+
+Tabla de 2x2 o tarjetas enfrentadas:
+
+COMPETIDORES DIRECTOS:
+1. Eventbrite
+   - Plataforma internacional
+   - Ventaja: reconocimiento global
+   - Desventaja: no adaptado a Paraguay (USD, pasarelas internacionales)
+   
+2. TuEntrada.com.py
+   - Plataforma paraguaya
+   - Ventaja: presencia local
+   - Desventaja: enfocado en eventos masivos, no cubre pequenos
+
+COMPETIDORES INDIRECTOS:
+1. Excel + WhatsApp
+   - Ventaja: gratuito, conocido
+   - Desventaja: manual, errores, no escala
+   
+2. Taquilla fisica
+   - Ventaja: tradicion, pago en efectivo
+   - Desventaja: horarios limitados, filas, sin datos
+
+Diseno:
+- Fondo blanco
+- Dos secciones: "Directos" (iconos de rivalidad) y "Indirectos" (iconos de sustituto)
+- Cada competidor en tarjeta con fortalezas (verde) y debilidades (rojo)
+- TicketWise centrado abajo como "Nuestra Propuesta"
+
+============================================================
+DIAPOSITIVA 11: VENTAJA COMPETITIVA
+============================================================
+Titulo: "Ventaja Competitiva"
+
+Cinco puntos en tarjetas horizontales con iconos:
+
+1. [icono ubicacion] Adaptacion Local: precios en Gs., metodos de pago paraguayos (transferencia Banco Familiar), soporte contextualizado
+
+2. [icono codigo] Arquitectura Moderna: Next.js 14, React 18, TypeScript, PostgreSQL, QR unicos por ticket
+
+3. [icono monedas] Modelo Accesible: comisiones bajas + planes flexibles para eventos de cualquier escala
+
+4. [icono diana] Nicho Desatendido: eventos de menos de 1.000 asistentes ignorados por grandes plataformas
+
+5. [icono escudo] Dificil de Copiar: combina conocimiento del mercado local paraguayo con expertise tecnico en stack moderno
+
+Frase final destacada:
+"No solo digitalizamos entradas, transformamos la experiencia del evento"
+
+Diseno:
+- Fondo blanco
+- Cinco tarjetas en vertical o 3+2
+- Cada tarjeta con icono a la izquierda, titulo en negrita, descripcion debajo
+- La ultima tarjeta (dificil de copiar) con borde destacado
+
+============================================================
+DIAPOSITIVA 12: LEAN CANVAS
+============================================================
+Titulo: "Lean Canvas"
+
+Mostrar tabla simplificada de 9 bloques (formato 3x3):
+
+Fila 1:
+| PROBLEMA | SOLUCION | PROPUESTA DE VALOR UNICA | VENTAJA COMPETITIVA | SEGMENTOS |
+| Gestion manual | Plataforma web | "Todo-en-uno para | Next.js + QR | Organizadores |
+| Filas largas | Venta 24/7 | gestionar, vender | unicos + roles | Asistentes |
+| Validacion lenta | Validacion digital | y validar entradas | Mobile-first | Admin |
+| Falsificacion | Tickets QR | de forma automatica, | Codigo abierto | |
+| Sin datos | Dashboard tiempo real | segura y en tiempo real" | Contexto PY | |
+
+Fila 2:
+| ALTERNATIVAS Existentes | METRICAS CLAVE | (PVU cont.) | CANALES | EARLY ADOPTERS |
+| Excel | # entradas vendidas | | Sitio web | Eventos academicos |
+| WhatsApp | % ocupacion aforo | | Redes sociales | Ferias culturales |
+| Taquilla fisica | Tiempo validacion | | Referencias | Eventos PY medianos |
+| | Ingresos por evento | | Marketing digital | |
+
+Fila 3:
+| ESTRUCTURA DE COSTOS | | | FLUJOS DE INGRESOS | |
+| Fijos: VPS (USD 6/mes), dominio, mantenimiento | | | Comision por entrada | |
+| Variables: almacenamiento, ancho de banda, soporte | | | Planes Basico/Profesional/Promocion | |
+
+Diseno:
+- Fondo blanco
+- Cuadricula 3x3 con colores de fondo distintos por bloque
+- Fuente reducida pero legible
+- Usar tooltips o numeros para no saturar
+- Opcion alternativa: mostrar los 9 bloques como tarjetas separadas alrededor de un centro "TicketWise"
+
+============================================================
+DIAPOSITIVA 13: TECNOLOGIAS
+============================================================
+Titulo: "Stack Tecnologico"
+
+Tres columnas por capa:
+
+CAPA FRONTEND:
+- Next.js 14 (App Router)
+- React 18 + TypeScript
+- TailwindCSS + shadcn/ui
+- Recharts (graficos)
+- qrcode.react (QR)
+- jspdf (PDF)
+
+CAPA BACKEND:
+- API Routes (Next.js)
+- JWT con Jose
+- bcryptjs (hashing)
+- Zod (validacion)
+- date-fns (fechas)
+
+CAPA DATOS E INFRA:
+- PostgreSQL
+- Docker + Nginx
+- Prometheus + Grafana
+- @yudiel/react-qr-scanner
+
+Diseno:
+- Fondo blanco
+- Tres columnas bajo los titulos "Frontend" | "Backend" | "Datos e Infraestructura"
+- Cada tecnologia con icono pequeno representativo
+- Logos de las tecnologias si estan disponibles
+- Conexiones visuales entre capas
+
+============================================================
+DIAPOSITIVA 14: DIAGRAMAS
+============================================================
+Titulo: "Entregables Tecnicos"
+
+Tres secciones con espacio para imagenes:
+
+[IMAGEN 1] - Diagrama de Contexto
+"Sistema TicketWise como proceso central con 5 entidades externas: Administrador, Organizador, Validador, Usuario/Cliente, Sistema de Archivos"
+
+[IMAGEN 2] - Diagrama Entidad-Relacion
+"7 tablas: users, events, ticket_types, orders, tickets, event_organizers, companies con sus relaciones"
+
+[IMAGEN 3] - Diagrama UML Casos de Uso
+"4 actores y 10 casos de uso principales: Registrarse, Iniciar Sesion, Comprar, Validar, Escanear, Gestionar Eventos, Gestionar Usuarios, Ver Dashboard, Descargar PDF"
+
+Diseno:
+- Fondo blanco
+- Tres espacios rectangulares con borde punteado indicando "Insertar imagen aqui"
+- Cada espacio con nombre del diagrama debajo
+- Flechas de conexion entre los 3 diagramas mostrando flujo: Contexto -> DER -> UML
+
+============================================================
+DIAPOSITIVA 15: CRONOGRAMA Y GESTION
+============================================================
+Titulo: "Gestion del Proyecto"
+
+Seccion "Cronograma" (linea de tiempo horizontal):
+Fase 1: Analisis (Sem 1-3) -> Fase 2: Diseno (Sem 4-6) -> Fase 3: Backend (Sem 7-11) -> Fase 4: Frontend (Sem 12-16) -> Fase 5: Integracion (Sem 17-20) -> Fase 6: Despliegue (Sem 21-22) -> Fase 7: Cierre (Sem 23-24)
+
+Seccion "Metodologia":
+Agil adaptada - Sprints de 2 semanas - GitHub - APA 7ma edicion
+
+Seccion "Riesgos Principales" (tabla resumen):
+- Cambio de requerimientos (medio/alto): comunicacion constante
+- Problemas de integracion (medio/medio): pruebas tempranas
+- Poca adopcion (baja/alto): usabilidad y capacitacion
+- Fallo de servidor (baja/alto): backups y monitoreo
+- Retraso (medio/medio): modulos independientes
+- Seguridad (baja/alto): JWT, validacion, parametrizacion
+
+Diseno:
+- Fondo blanco
+- Linea de tiempo horizontal con marcadores de fase
+- Cada fase con color diferente en degradado
+- Riesgos en tabla compacta con indicadores de probabilidad (barras)
+- Icono de reloj/calendario
+
+============================================================
+DIAPOSITIVA 16: CONCLUSIONES
+============================================================
+Titulo: "Conclusiones"
+
+Puntos principales (5 tarjetas):
+1. Solucion Innovadora: TicketWise representa una respuesta concreta a las necesidades de digitalizacion de eventos en Paraguay
+2. Automatizacion Integral: reduce errores, mejora eficiencia operativa y optimiza la experiencia del asistente
+3. Tecnologia Moderna: stack tecnologico actualizado con Next.js, React, TypeScript y PostgreSQL
+4. Proyecto Real: en desarrollo activo con validacion practica de requerimientos
+5. Alto Potencial: escalable a distintos tipos de eventos y expandible con nuevas funcionalidades
+
+Frase de cierre:
+"TicketWise: transformando la gestion de eventos en Paraguay, un ticket digital a la vez"
+
+Diseno:
+- Fondo con degradado sutil azul
+- Cinco tarjetas blancas con sombra
+- Cada tarjeta con numero grande (1-5) y texto
+- Parte inferior: frase de cierre en italica
+- Agradecimiento: "Gracias por su atencion" con icono de ticket
+
+============================================================
+INSTRUCCIONES FINALES PARA LA IA:
+============================================================
+- Usar transiciones suaves entre diapositivas
+- Animaciones de entrada para bullets (aparecer uno por uno)
+- Mantener consistencia en fuentes, colores y estilos de iconos
+- Incluir numero de diapositiva y titulo del proyecto en pie de pagina
+- Formato de exportacion: PPTX y PDF
+- Relacion de aspecto: 16:9
+- Tono del contenido: academico-profesional, formal pero visualmente moderno

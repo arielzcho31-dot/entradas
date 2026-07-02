@@ -17,12 +17,10 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthUser | null>;
   logout: () => Promise<void>;
   register: (userData: any) => Promise<boolean>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Clave para localStorage
-const USER_STORAGE_KEY = 'ticketwise_user';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -30,25 +28,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Cargar usuario desde localStorage al montar
-  const loadUserFromStorage = useCallback(() => {
+  // Cargar usuario desde API (tokens en httpOnly cookies)
+  const loadUserFromApi = useCallback(async () => {
     try {
-      const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+      const response = await fetch("/api/auth/me", { 
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setUser(data.data);
+        }
       }
     } catch (error) {
-      console.error('Error loading user from storage:', error);
-      localStorage.removeItem(USER_STORAGE_KEY);
+      console.error('Error loading user from API:', error);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadUserFromStorage();
-  }, [loadUserFromStorage]);
+    loadUserFromApi();
+  }, [loadUserFromApi]);
 
   const login = async (
     email: string,
@@ -59,11 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
+        credentials: 'include'
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         toast({
           title: "Error al iniciar sesión",
           description: data.error || "Usuario o contraseña incorrectos.",
@@ -72,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
-      if (!data.user) {
+      if (!data.data) {
         toast({
           title: "Usuario no encontrado",
           description: "Verifica tus datos o regístrate.",
@@ -83,25 +87,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       toast({
         title: "Bienvenido 👋",
-        description: data.user.email,
+        description: data.data.email,
       });
 
-      const userWithRole: AuthUser = {
-        id: data.user.id,
-        email: data.user.email,
-        role: data.user.role || "user",
-        user_metadata: {
-          displayName: data.user.display_name,
-          role: data.user.role,
-        },
-      };
-
-      // Guardar en localStorage
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userWithRole));
-      setUser(userWithRole);
-      
+      setUser(data.data);
       router.push("/dashboard");
-      return userWithRole;
+      return data.data;
 
     } catch (error) {
       console.error('Login error:', error);
@@ -115,10 +106,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    // Limpiar localStorage
-    localStorage.removeItem(USER_STORAGE_KEY);
-    setUser(null);
+    try {
+      await fetch("/api/auth/logout", { 
+        method: 'POST',
+        credentials: 'include' 
+      });
+    } catch (error) {
+      console.error('Logout API error:', error);
+    }
     
+    setUser(null);
     toast({
       title: "Sesión cerrada",
       description: "Has cerrado sesión exitosamente.",
@@ -126,6 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     router.push("/");
     router.refresh();
+  };
+
+  const refreshAuth = async () => {
+    await loadUserFromApi();
   };
 
   const register = async (userData: any): Promise<boolean> => {
@@ -163,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = { user, loading, login, logout, register };
+  const value = { user, loading, login, logout, register, refreshAuth };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

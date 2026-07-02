@@ -1,13 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Calendar, MapPin, Tag as TagIcon, Clock } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -16,265 +12,244 @@ interface Event {
   description: string;
   event_date: string;
   location: string;
+  price: number;
+  is_free: boolean;
   image_url: string;
-  status: string;
-  category?: string;
-  min_price?: number;
-  is_informative?: boolean;
+  status?: string;
+  hidden?: boolean;
 }
 
-const categories = ['Todos', 'Música', 'Deportes', 'Arte', 'Tecnología', 'Comida', 'Otros'];
-
-export default function Home() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const hasRedirected = useRef(false);
 
   useEffect(() => {
-    if (!authLoading && user && !hasRedirected.current) {
-      if (user.role === 'validator') {
-        hasRedirected.current = true;
-        router.replace('/dashboard/validator');
-        return;
-      } else if (user.role === 'organizer') {
-        hasRedirected.current = true;
-        router.replace('/dashboard/organizer');
-        return;
-      } else if (user.role === 'admin') {
-        hasRedirected.current = true;
-        router.replace('/dashboard');
-        return;
+    const fetchEvents = async () => {
+      try {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/events?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch events');
+        
+        const data = await response.json();
+        const processedEvents = data
+          .filter((event: Event) => {
+            const isVisible = event.status !== 'hidden' && !event.hidden;
+            return isVisible;
+          })
+          .map((event: Event) => ({
+            ...event,
+            is_free: event.is_free || event.price === 0,
+          }));
+        
+        setEvents(processedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    // Si es usuario normal o no está logueado, cargar eventos
-    if (!authLoading && !hasRedirected.current) {
-      fetchEvents();
-    }
-  }, [user, authLoading, router]);
+    };
 
-  const shouldRedirect = !!user && ['validator', 'organizer', 'admin'].includes(user.role);
+    fetchEvents();
+  }, [refreshKey]);
 
-  // Mostrar loader solo si está en proceso de redirección por rol especial
-  if (!authLoading && shouldRedirect) {
+  const filteredEvents = events.filter(event =>
+    event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.location.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <span className="text-sm text-muted-foreground">Redirigiendo...</span>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-gray-500 text-lg">Cargando eventos...</p>
       </div>
     );
   }
 
-  const fetchEvents = async () => {
-    try {
-      const response = await fetch('/api/events');
-      if (response.ok) {
-        const data = await response.json();
-        // Mostrar todos EXCEPTO los ocultos (hidden)
-        const visibleEvents = data.filter((event: Event) => event.status !== 'hidden');
-        setEvents(visibleEvents);
-      }
-    } catch (error) {
-      console.error('Error loading events:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || event.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleEventClick = (eventSlug: string) => {
-    router.push(`/events/${eventSlug}`);
-  };
-
-  const formatPrice = (price?: number) => {
-    if (!price || price === 0) return 'Gratis';
-    return new Intl.NumberFormat('es-PY', {
-      style: 'currency',
-      currency: 'PYG',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-sky-400 to-blue-500 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative container mx-auto px-4 py-24 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 drop-shadow-lg">
-            Descubre Tu Próxima Experiencia
+      <section className="relative h-[500px] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=2000" 
+            className="w-full h-full object-cover"
+            alt="Concert background"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-indigo-900/80 backdrop-blur-[2px]"></div>
+        </div>
+
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
+            Descubre Tu Próxima <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400 italic">Experiencia</span>
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-sky-50">
-            Desde conciertos hasta conferencias, encuentra y reserva entradas para los mejores eventos
+          <p className="text-blue-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
+            Desde conciertos épicos hasta conferencias transformadoras. Encuentra y reserva tu lugar en los mejores eventos.
           </p>
-          <div className="max-w-2xl mx-auto">
-            <Input
-              type="text"
-              placeholder="Buscar eventos por nombre, ubicación..."
+
+          {/* Buscador Estilizado */}
+          <div className="relative max-w-2xl mx-auto group">
+            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+              🔍
+            </div>
+            <input 
+              type="text" 
+              placeholder="Buscar por nombre, artista o ubicación..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-14 text-lg bg-white text-black border-0 shadow-xl rounded-full px-6"
+              className="w-full pl-14 pr-6 py-5 rounded-2xl bg-white shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 text-slate-700 text-lg transition-all"
             />
           </div>
         </div>
+
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
       </section>
 
-      {/* Events Section */}
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
-          Próximos Eventos
-        </h2>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        
+        {/* Sección de Eventos */}
+        <section>
 
-        {/* Filters */}
-        <div className="flex justify-center gap-3 mb-12 flex-wrap">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              variant={selectedCategory === category ? 'default' : 'outline'}
-              className={`rounded-full px-6 py-2 ${
-                selectedCategory === category
-                  ? 'bg-sky-500 text-white hover:bg-sky-600'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+          {filteredEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredEvents.map((event) => {
+                const isFree = event.is_free || event.price === 0 || !event.price;
+                const displayPrice = isFree ? 'GRATIS' : `$${event.price}`;
 
-        {/* Events Grid */}
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-12 w-12 animate-spin text-sky-500" />
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-xl text-gray-500">
-              {searchQuery || selectedCategory !== 'Todos'
-                ? 'No se encontraron eventos con esos criterios'
-                : 'No hay eventos disponibles en este momento'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                onClick={() => handleEventClick(event.slug)}
-                className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2"
-              >
-                {/* Image */}
-                <div className="relative h-48 bg-gray-200">
-                  {event.image_url ? (
-                    <Image
-                      src={event.image_url}
-                      alt={event.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-blue-500">
-                      <TagIcon className="h-16 w-16 text-white/50" />
-                    </div>
-                  )}
-                  {/* Estado Badge */}
-                  <div className="absolute top-2 right-2">
-                    <Badge 
-                      className={
-                        event.status === 'active' 
-                          ? 'bg-green-500 hover:bg-green-600 text-white' 
-                          : event.status === 'ended'
-                          ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                          : event.status === 'cancelled'
-                          ? 'bg-red-500 hover:bg-red-600 text-white'
-                          : 'bg-gray-500 hover:bg-gray-600 text-white'
-                      }
-                    >
-                      {event.status === 'active' ? 'Activo' : event.status === 'ended' ? 'Finalizado' : event.status === 'cancelled' ? 'Cancelado' : 'Oculto'}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-5">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-3 line-clamp-2">
-                    {event.name}
-                  </h3>
-                  
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-sky-500" />
-                      <span>
-                        {new Date(event.event_date).toLocaleDateString('es-ES', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-sky-500" />
-                      <span>
-                        {new Date(event.event_date).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-sky-500" />
-                      <span className="line-clamp-1">{event.location}</span>
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    {event.category && (
-                      <span className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-full">
-                        {event.category}
-                      </span>
-                    )}
-                    {!event.is_informative && (
-                      <span className="text-sky-600 font-bold text-lg ml-auto">
-                        {formatPrice(event.min_price)}
-                      </span>
-                    )}
-                    {event.is_informative && (
-                      <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full ml-auto">
-                        Informativo
-                      </span>
-                    )}
-                  </div>
-
-                  <Button 
-                    className={`w-full mt-4 rounded-lg ${
-                      event.is_informative 
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white' 
-                        : 'bg-sky-500 hover:bg-sky-600 text-white'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEventClick(event.slug);
-                    }}
+                return (
+                  <div 
+                    key={event.id}
+                    className="group bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer flex flex-col"
                   >
-                    {event.is_informative ? 'Ver Detalles' : 'Conseguir Entradas'}
-                  </Button>
-                </div>
-              </div>
-            ))}
+                    {/* Imagen del Evento */}
+                    <div className="relative h-56 overflow-hidden bg-gradient-to-br from-sky-400 to-blue-500">
+                      {event.image_url ? (
+                        <img 
+                          src={event.image_url} 
+                          alt={event.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl">
+                          🎫
+                        </div>
+                      )}
+                      
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-bold text-blue-700 uppercase tracking-wider shadow-sm">
+                          Evento
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Contenido de la Tarjeta */}
+                    <div className="p-6 flex-1 flex flex-col">
+                      <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
+                        {event.name}
+                      </h3>
+                      
+                      <p className="text-sm text-slate-600 mb-4 line-clamp-2">
+                        {event.description}
+                      </p>
+
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-slate-500 text-sm">
+                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-blue-500">
+                            📅
+                          </div>
+                          <span className="font-medium">
+                            {new Date(event.event_date).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-slate-500 text-sm">
+                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-blue-500">
+                            📍
+                          </div>
+                          <span className="font-medium line-clamp-1">{event.location}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-200 mb-4">
+                        
+                      </div>
+
+                      <Link href={`/events/${event.slug}`} className="block mb-2">
+                        <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
+                           Ver Detalles
+                        </button>
+                      </Link>
+
+                      {!isFree && event.price > 0 && (
+                        <Link href={`/events/${event.slug}`} className="block">
+                          <button className="w-full py-3 bg-white text-blue-600 border-2 border-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-all duration-300">
+                             Comprar Entradas
+                          </button>
+                        </Link>
+                      )}
+
+                      {isFree && (
+                        <Link href={`/events/${event.slug}`} className="block">
+                          <button className="w-full py-3 bg-white text-green-600 border-2 border-green-600 rounded-2xl font-bold hover:bg-green-50 transition-all duration-300">
+                             Adquirir Entradas
+                          </button>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <p className="text-xl text-gray-500 mb-4">
+                {searchQuery 
+                  ? 'No se encontraron eventos con esos criterios'
+                  : 'No hay eventos disponibles en este momento'}
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-blue-600 hover:underline font-semibold"
+                >
+                  Limpiar búsqueda
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      </main>
+
+      {/* Footer Estilizado */}
+      <footer className="bg-white border-t border-slate-100 py-12 mt-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🎫</span>
+            <span className="font-bold text-slate-400">TicketWise © 2026</span>
           </div>
-        )}
-      </section>
+          <div className="flex gap-8 text-sm font-medium text-slate-400">
+            <a href="#" className="hover:text-blue-600">Términos</a>
+            <a href="#" className="hover:text-blue-600">Privacidad</a>
+            <a href="#" className="hover:text-blue-600">Contacto</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

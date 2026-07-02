@@ -1,157 +1,96 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
-import bcrypt from 'bcrypt'
-import { normalizeRole } from '@/lib/role-utils'
+import { NextRequest } from 'next/server';
+import db from '@/lib/database';
+import { apiSuccess, apiError } from '@/lib/api-utils';
+import { registerSchema } from '@/lib/validators';
+import { createToken, createRefreshToken, setTokenCookies } from '@/lib/auth-utils';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
-interface User {
-  id: string;
-  email: string;
-  password: string;
-  display_name?: string;
-  role: string;
-  ci?: string;
-  usuario?: string;
-  numero?: string;
-  universidad?: string;
-  created_at: Date;
-}
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const userData = await request.json();
-    const { email, password, displayName, ci, usuario, numero, universidad, role } = userData;
-
-    // Validación básica
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email y contraseña son requeridos' },
-        { status: 400 }
-      );
-    }
-
-    // Validar campos obligatorios: CI, Celular, Email
-    if (!ci || !numero || !email) {
-      return NextResponse.json(
-        { error: 'CI, Celular y Correo son campos obligatorios' },
-        { status: 400 }
-      );
-    }
-
-    // Validar formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Email inválido' },
-        { status: 400 }
-      );
-    }
-
-    // Validar que CI solo contenga números
-    if (!/^\d+$/.test(ci)) {
-      return NextResponse.json(
-        { error: 'La cédula (CI) debe contener solo números' },
-        { status: 400 }
-      );
-    }
-
-    // Validar que número solo contenga números
-    if (!/^\d+$/.test(numero)) {
-      return NextResponse.json(
-        { error: 'El número de celular debe contener solo números' },
-        { status: 400 }
-      );
-    }
-
-    // Validar que usuario solo contenga letras, números y guiones bajos
-    if (usuario && !/^[a-zA-Z0-9_]+$/.test(usuario)) {
-      return NextResponse.json(
-        { error: 'El usuario solo puede contener letras, números y guiones bajos' },
-        { status: 400 }
-      );
-    }
-
-    // Validar y normalizar el rol
-    const normalizedRole = normalizeRole(role);
-
-    // Validar longitud de contraseña
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'La contraseña debe tener al menos 6 caracteres' },
-        { status: 400 }
-      );
-    }
-
-    // Verificar si el email ya existe
-    const existingEmail = await query<User>(
-      'SELECT id FROM users WHERE email = $1 LIMIT 1',
-      [email.toLowerCase()]
-    );
-
-    if (existingEmail.rowCount && existingEmail.rowCount > 0) {
-      return NextResponse.json(
-        { error: 'El email ya está registrado' },
-        { status: 409 }
-      );
-    }
-
-    // Si se proporciona CI, verificar que no esté duplicado
-    if (ci) {
-      const existingCI = await query<User>(
-        'SELECT id FROM users WHERE ci = $1 LIMIT 1',
-        [ci]
-      );
-
-      if (existingCI.rowCount && existingCI.rowCount > 0) {
-        return NextResponse.json(
-          { error: 'El CI ya está registrado' },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Hashear la contraseña
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Crear el usuario en la base de datos
-    const result = await query<User>(
-      `INSERT INTO users (
-        email, password, display_name, ci, usuario, numero, universidad, role
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING id, email, display_name, ci, usuario, numero, universidad, role, created_at`,
-      [
-        email.toLowerCase(),
-        hashedPassword,
-        displayName || null,
-        ci || null,
-        usuario || null,
-        numero || null,
-        universidad || null,
-        normalizedRole
-      ]
-    );
-
-    const newUser = result.rows[0];
-
-    return NextResponse.json({
-      message: 'Usuario registrado exitosamente',
-      user: newUser,
-    }, { status: 201 });
-
-  } catch (error: any) {
-    console.error('Register error:', error);
+    // 1. Validar input
+    const body = await req.json().catch(() => ({}));
+    const validation = registerSchema.safeParse(body);
     
-    // Manejar error de email duplicado (por si acaso)
-    if (error.code === '23505' && error.constraint === 'users_email_key') {
-      return NextResponse.json(
-        { error: 'El email ya está registrado' },
-        { status: 409 }
-      );
+    if (!validation.success) {
+      console.warn('Register validation failed:', validation.error);
+      return apiError('Datos inválidos', 400);
     }
 
-    return NextResponse.json(
-      { error: 'Error al registrar usuario' },
-      { status: 500 }
-    );
+    const { email, password, display_name, ci, usuario, numero, universidad } = validation.data;
+    console.log('✍️  Register attempt for:', email);
+
+    // 2. Verificar que email no exista
+    let existingUser;
+    try {
+      existingUser = await db.query(
+        'SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [email]
+      );
+    } catch (dbError) {
+      console.error('❌ Database error checking existing user:', dbError);
+      return apiError('Error al conectar con la base de datos', 500);
+    }
+
+    if (existingUser.rows.length > 0) {
+      console.warn('⚠️  Email already exists:', email);
+      return apiError('El email ya está registrado', 409);
+    }
+
+    // 3. Hash de contraseña con bcryptjs
+    console.log('🔐 Hashing password...');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    console.log('✅ Password hashed. Hash length:', hashedPassword.length);
+
+    // 4. Crear usuario
+    const userId = uuidv4();
+    console.log('👤 Creating user with ID:', userId);
+    
+    let user;
+    try {
+      const result = await db.query(
+        `INSERT INTO users (id, email, password, display_name, ci, usuario, numero, universidad, role, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'user', NOW())
+         RETURNING id, email, role, display_name`,
+        [userId, email, hashedPassword, display_name, ci || null, usuario || null, numero || null, universidad || null]
+      );
+
+      user = result.rows[0];
+      console.log('✅ User created:', user.email);
+    } catch (dbError: any) {
+      console.error('❌ Database error creating user:', dbError);
+      
+      if (dbError.code === '23505') {
+        return apiError('El email ya está registrado', 409);
+      }
+      
+      return apiError('Error al crear la cuenta', 500);
+    }
+
+    // 5. Crear tokens
+    console.log('🔑 Creating tokens...');
+    const token = await createToken(user.id, user.email, user.role);
+    const refreshToken = await createRefreshToken(user.id);
+
+    console.log('✅ Registration successful for:', email);
+
+    // 6. Respuesta con cookies
+    const response = apiSuccess({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      display_name: user.display_name,
+      user_metadata: {
+        displayName: user.display_name,
+        role: user.role
+      }
+    }, 201);
+
+    return setTokenCookies(response, token, refreshToken);
+
+  } catch (error) {
+    console.error('❌ Register error:', error);
+    return apiError('Error al crear la cuenta', 500);
   }
 }

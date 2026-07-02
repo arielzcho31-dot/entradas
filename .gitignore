@@ -51,6 +51,22 @@ docker-compose.override.yml
 *.pem
 *.key
 *.crt
-studio-*.jsongit add .
-git commit -m "Update docker-compose.yml with PostgreSQL and health checks"
-git push origin main
+
+# Testing
+tests/
+
+# Monitoring configs
+monitoring/
+
+# SSL certs
+ssl/
+certbot/
+
+# Uploads directory
+public/uploads/
+
+# Logs
+logs/
+
+# Next.js
+.next/

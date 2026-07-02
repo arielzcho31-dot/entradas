@@ -1,21 +1,23 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Calendar, MapPin, Tag as TagIcon } from 'lucide-react';
 
 interface Event {
   id: string;
+  slug: string;
   name: string;
   description: string;
   event_date: string;
   location: string;
   image_url: string;
-  status: string;
+  status?: string;
+  hidden?: boolean;
   category?: string;
+  price?: number;
   min_price?: number;
 }
 
@@ -34,12 +36,18 @@ export default function HomeEventsPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('/api/events');
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/events?_t=${timestamp}`, {
+        cache: 'no-store',
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        // Solo mostrar eventos activos
-        const activeEvents = data.filter((event: Event) => event.status === 'active');
-        setEvents(activeEvents);
+        // Filtrar: solo eventos NO ocultos y NO con status 'hidden'
+        const visibleEvents = data.filter(
+          (event: Event) => event.status !== 'hidden' && !event.hidden
+        );
+        setEvents(visibleEvents);
       }
     } catch (error) {
       console.error('Error loading events:', error);
@@ -48,15 +56,16 @@ export default function HomeEventsPage() {
     }
   };
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || event.category === selectedCategory;
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch = 
+      event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'Todos' || (event.category && event.category === selectedCategory);
     return matchesSearch && matchesCategory;
   });
 
-  const handleEventClick = (eventId: string) => {
-    router.push(`/events/${eventId}`);
+  const handleEventClick = (eventSlug: string) => {
+    router.push(`/events/${eventSlug}`);
   };
 
   const formatPrice = (price?: number) => {
@@ -69,7 +78,7 @@ export default function HomeEventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-sky-400 to-blue-500 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -119,7 +128,7 @@ export default function HomeEventsPage() {
         {/* Events Grid */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-12 w-12 animate-spin text-sky-500" />
+            <div className="h-12 w-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20">
@@ -134,7 +143,7 @@ export default function HomeEventsPage() {
             {filteredEvents.map((event) => (
               <div
                 key={event.id}
-                onClick={() => handleEventClick(event.id)}
+                onClick={() => handleEventClick(event.slug)}
                 className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2"
               >
                 {/* Image */}
@@ -149,7 +158,7 @@ export default function HomeEventsPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-400 to-blue-500">
-                      <TagIcon className="h-16 w-16 text-white/50" />
+                      <span className="text-4xl">🎫</span>
                     </div>
                   )}
                 </div>
@@ -162,7 +171,7 @@ export default function HomeEventsPage() {
                   
                   <div className="space-y-2 text-sm text-gray-600 mb-4">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-sky-500" />
+                      <span>📅</span>
                       <span>
                         {new Date(event.event_date).toLocaleDateString('es-ES', {
                           day: 'numeric',
@@ -172,7 +181,7 @@ export default function HomeEventsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-sky-500" />
+                      <span>📍</span>
                       <span className="line-clamp-1">{event.location}</span>
                     </div>
                   </div>
@@ -185,7 +194,7 @@ export default function HomeEventsPage() {
                       </span>
                     )}
                     <span className="text-sky-600 font-bold text-lg ml-auto">
-                      {formatPrice(event.min_price)}
+                      {formatPrice(event.min_price || event.price)}
                     </span>
                   </div>
 
@@ -193,7 +202,7 @@ export default function HomeEventsPage() {
                     className="w-full mt-4 bg-sky-500 hover:bg-sky-600 text-white rounded-lg"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleEventClick(event.id);
+                      handleEventClick(event.slug);
                     }}
                   >
                     Ver Detalles

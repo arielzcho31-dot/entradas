@@ -428,58 +428,67 @@ export default function EventPurchasePage() {
     );
   }
 
+  // Función para renderizar detalles del evento (reutilizable)
+  const EventDetails = () => (
+    <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 mb-8">
+      <CardContent className="pt-6">
+        {eventData.image_url && (
+          <div className="relative w-full h-64 mb-6 rounded-lg overflow-hidden">
+            <Image
+              src={eventData.image_url}
+              alt={eventData.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {eventData.name}
+        </h1>
+        <div className="space-y-4 text-gray-600 dark:text-gray-400">
+          <div>
+            <span className="font-semibold text-gray-900 dark:text-gray-100">📅 Fecha:</span>{' '}
+            {new Date(eventData.event_date).toLocaleDateString('es-PY', {
+              day: '2-digit',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+          <div>
+            <span className="font-semibold text-gray-900 dark:text-gray-100">📍 Lugar:</span> {eventData.location}
+          </div>
+          {eventData.description && (
+            <div>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">📝 Descripción:</span>
+              <p className="mt-2 whitespace-pre-wrap text-gray-600 dark:text-gray-400">{eventData.description}</p>
+            </div>
+          )}
+        </div>
+        {eventData.is_informative && (
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              ℹ️ Este es un evento informativo. No requiere compra de entradas.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   // Si el evento es informativo (no tiene compra de entradas)
   if (eventData.is_informative) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] gap-4 p-6">
-        <Card className="max-w-2xl w-full">
-          <CardContent className="pt-6">
-            {eventData.image_url && (
-              <div className="relative w-full h-64 mb-6 rounded-lg overflow-hidden">
-                <Image
-                  src={eventData.image_url}
-                  alt={eventData.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              {eventData.name}
-            </h1>
-            <div className="space-y-4 text-gray-600 dark:text-gray-400">
-              <div>
-                <span className="font-semibold">Fecha:</span>{' '}
-                {new Date(eventData.event_date).toLocaleDateString('es-PY', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </div>
-              <div>
-                <span className="font-semibold">Lugar:</span> {eventData.location}
-              </div>
-              {eventData.description && (
-                <div>
-                  <span className="font-semibold">Descripción:</span>
-                  <p className="mt-2 whitespace-pre-wrap">{eventData.description}</p>
-                </div>
-              )}
-            </div>
-            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                ℹ️ Este es un evento informativo. No requiere compra de entradas.
-              </p>
-            </div>
-            <div className="mt-6 flex gap-4">
-              <Button onClick={() => router.push('/')} className="flex-1">
-                Volver al inicio
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="bg-background">
+        <div className="container mx-auto max-w-4xl px-4 py-12">
+          <EventDetails />
+          <div className="flex gap-4">
+            <Button onClick={() => router.push('/')} variant="outline" className="flex-1">
+              ← Volver al inicio
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -523,10 +532,14 @@ export default function EventPurchasePage() {
     <RequireAuth>
       <div className="bg-background">
         <div className="container mx-auto max-w-6xl px-4 py-12">
+          {/* SECCIÓN 1: DETALLES DEL EVENTO */}
+          <EventDetails />
+
+          {/* SECCIÓN 2: FORMULARIO DE COMPRA */}
           <div className="text-center mb-10">
-            <h1 className="text-5xl font-bold tracking-tight">
-              {eventData.name}
-            </h1>
+            <h2 className="text-4xl font-bold tracking-tight">
+              Adquirir Entradas
+            </h2>
             <p className="mt-2 text-lg text-muted-foreground">
               Asegurá tus boletos – transferencia bancaria con comprobante.
             </p>

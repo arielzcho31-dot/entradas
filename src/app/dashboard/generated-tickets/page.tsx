@@ -16,6 +16,7 @@ import { TicketDesign } from '@/components/tickets/ticket-design';
 interface GeneratedTicket {
   id: string;
   ticket_type_name: string;
+  ticket_name?: string;
   event_id: string;
   event_name?: string;
   created_at: string;
@@ -236,12 +237,8 @@ export default function GeneratedTicketsPage() {
             <TicketDesign
               key={ticket.id}
               ticketId={ticket.id}
-              eventName={
-                <>
-                  <span style={{ color: '#ec4899' }}>{ticket.event_name || 'EVENTO'}</span>
-                </>
-              }
-              ticketName={ticket.ticket_name}
+              eventName={ticket.event_name || 'EVENTO'}
+              ticketType={ticket.ticket_type_name || 'Sin tipo'}
               userName="Invitado"
               onRendered={() => handleTicketRendered(pdfContent.length)}
             />

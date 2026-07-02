@@ -1,5 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server';
+
+interface TicketType {
+  id: string;
+  event_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  quantity_available: number;
+}
 
 // GET /api/ticket-types/[id] - Obtener un tipo de entrada específico
 export async function GET(
@@ -9,7 +18,7 @@ export async function GET(
   try {
     const { id } = await context.params;
 
-    const result = await query(
+    const result = await query<TicketType>(
       'SELECT * FROM ticket_types WHERE id = $1',
       [id]
     );
@@ -84,8 +93,8 @@ export async function PUT(
 
     values.push(id);
 
-    const result = await query(
-      `UPDATE ticket_types SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex} RETURNING *`,
+    const result = await query<TicketType>(
+      `UPDATE ticket_types SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       values
     );
 
@@ -125,8 +134,8 @@ export async function DELETE(
       );
     }
 
-    const result = await query(
-      'DELETE FROM ticket_types WHERE id = $1 RETURNING id',
+    const result = await query<TicketType>(
+      'DELETE FROM ticket_types WHERE id = $1 RETURNING *',
       [id]
     );
 

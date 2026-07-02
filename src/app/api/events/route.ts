@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { generateUniqueSlug } from '@/lib/slug-utils';
 
+// Desactivar caché para obtener datos frescos
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/events - Listar todos los eventos
 export async function GET(request: NextRequest) {
   try {

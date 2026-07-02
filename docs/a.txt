@@ -1,0 +1,228 @@
+import React, { useState } from 'react';
+import { Search, Calendar, MapPin, Music, Trophy, Palette, Cpu, Utensils, MoreHorizontal, Ticket, Star } from 'lucide-react';
+
+const App = () => {
+  const [activeCategory, setActiveCategory] = useState('Todos');
+
+  const categories = [
+    { name: 'Todos', icon: <MoreHorizontal size={18} /> },
+    { name: 'Música', icon: <Music size={18} /> },
+    { name: 'Deportes', icon: <Trophy size={18} /> },
+    { name: 'Arte', icon: <Palette size={18} /> },
+    { name: 'Tecnología', icon: <Cpu size={18} /> },
+    { name: 'Comida', icon: <Utensils size={18} /> },
+  ];
+
+  const events = [
+    {
+      id: 1,
+      title: "Inscripciones UNIDA",
+      date: "01 de Marzo de 2026",
+      location: "Campus Central",
+      category: "Educación",
+      status: "Activo",
+      image: "https://images.unsplash.com/photo-1541339907198-e08759df9a73?auto=format&fit=crop&q=80&w=800",
+      featured: true
+    },
+    {
+      id: 2,
+      title: "UNIDAFEST 2025",
+      date: "17 de Noviembre de 2025",
+      location: "Estadio Principal",
+      category: "Música",
+      status: "Activo",
+      image: "https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=800",
+      featured: false
+    },
+    {
+      id: 3,
+      title: "Tech Innovation Summit",
+      date: "10 de Octubre de 2026",
+      location: "Centro de Convenciones",
+      category: "Tecnología",
+      status: "Próximamente",
+      image: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&q=80&w=800",
+      featured: false
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {/* Navegación */}
+      <nav className="flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="bg-blue-600 p-2 rounded-lg text-white">
+            <Ticket size={24} />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-slate-800">TicketWise</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Mis Reservas</button>
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border-2 border-white shadow-sm">
+            JL
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative h-[500px] flex items-center justify-center overflow-hidden">
+        {/* Fondo con imagen y overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=2000" 
+            className="w-full h-full object-cover"
+            alt="Concert background"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-indigo-900/80 backdrop-blur-[2px]"></div>
+        </div>
+
+        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
+            Descubre Tu Próxima <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400 italic">Experiencia</span>
+          </h1>
+          <p className="text-blue-100 text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90">
+            Desde conciertos épicos hasta conferencias transformadoras. Encuentra y reserva tu lugar en los mejores eventos.
+          </p>
+
+          {/* Buscador Estilizado */}
+          <div className="relative max-w-2xl mx-auto group">
+            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+              <Search size={20} />
+            </div>
+            <input 
+              type="text" 
+              placeholder="Buscar por nombre, artista o ubicación..."
+              className="w-full pl-14 pr-6 py-5 rounded-2xl bg-white shadow-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 text-slate-700 text-lg transition-all"
+            />
+            <button className="absolute right-3 top-3 bottom-3 px-6 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 active:scale-95">
+              Buscar
+            </button>
+          </div>
+        </div>
+
+        {/* Decoración abstracta */}
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
+      </section>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        
+        {/* Filtros de Categoría */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              Explorar Categorías
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {categories.map((cat) => (
+              <button
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 border ${
+                  activeCategory === cat.name
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 translate-y-[-2px]'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50'
+                }`}
+              >
+                {cat.icon}
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Sección de Eventos */}
+        <section>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-slate-800">Próximos Eventos</h2>
+            <button className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
+              Ver todo <MoreHorizontal size={16} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {events.map((event) => (
+              <div 
+                key={event.id}
+                className="group bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer"
+              >
+                {/* Imagen del Evento */}
+                <div className="relative h-56 overflow-hidden">
+                  <img 
+                    src={event.image} 
+                    alt={event.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-bold text-blue-700 uppercase tracking-wider shadow-sm">
+                      {event.category}
+                    </span>
+                    {event.featured && (
+                      <span className="px-3 py-1 bg-amber-400 rounded-full text-xs font-bold text-amber-900 flex items-center gap-1 shadow-sm">
+                        <Star size={12} fill="currentColor" /> Destacado
+                      </span>
+                    )}
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm ${
+                      event.status === 'Activo' ? 'bg-emerald-500' : 'bg-slate-500'
+                    }`}>
+                      {event.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contenido de la Tarjeta */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors">
+                    {event.title}
+                  </h3>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3 text-slate-500 text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-blue-500">
+                        <Calendar size={18} />
+                      </div>
+                      <span className="font-medium">{event.date}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-500 text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-blue-500">
+                        <MapPin size={18} />
+                      </div>
+                      <span className="font-medium">{event.location}</span>
+                    </div>
+                  </div>
+
+                  <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-lg shadow-slate-200">
+                    Ver Detalles
+                    <Ticket size={18} className="group-hover/btn:rotate-12 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* Footer Simple Estilizado */}
+      <footer className="bg-white border-t border-slate-100 py-12 mt-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="bg-slate-200 p-1.5 rounded text-slate-600">
+              <Ticket size={18} />
+            </div>
+            <span className="font-bold text-slate-400">TicketWise © 2026</span>
+          </div>
+          <div className="flex gap-8 text-sm font-medium text-slate-400">
+            <a href="#" className="hover:text-blue-600">Términos</a>
+            <a href="#" className="hover:text-blue-600">Privacidad</a>
+            <a href="#" className="hover:text-blue-600">Contacto</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
